@@ -1,0 +1,34 @@
+# IDE
+.vscode
+
+# Config
+.env
+config/
+cmd/app/config/
+cmd/app/logs/
+cmd/app/.env
+logs/
+
+# CI/CD
+build/
+Dockerfile
+docker-compose.yml
+Makefile
+.gitlab-ci.yml
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+mockdb.log
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+vendor/

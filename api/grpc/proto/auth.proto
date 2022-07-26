@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package main;
+
+option go_package = "./proto";
+
+service AuthApi {
+  rpc Authenticate(AuthRequest) returns (AuthResponse) {}
+  rpc UpdateTokens(RefreshTokenCredits) returns (UserCredits) {}
+}
+
+message AuthRequest { //access
+  string accessToken = 1;
+}
+
+message AuthResponse {
+  string username = 1;
+  string error = 2;
+}
+
+message RefreshTokenCredits { //refresh
+  string refreshToken = 1;
+}
+
+message UserCredits {
+  string username = 1;
+  string accessToken = 2;
+  string refreshToken = 3;
+  string error = 4;
+}

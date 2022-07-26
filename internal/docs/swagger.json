@@ -1,0 +1,152 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a team3 task.service API.",
+        "title": "Team3.Task.service API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "https://gitlab.com/g6834/team3/task",
+            "email": "alex@mail.ru"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": ":3000",
+    "basePath": "/",
+    "paths": {
+        "/ping": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "accessailability task.service",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/task": {
+            "post": {
+                "description": "add (create) new task",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "create task",
+                "parameters": [
+                    {
+                        "description": "New Task",
+                        "name": "article",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.Task"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.customTaskError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
+                        "schema": {
+                            "$ref": "#/definitions/errors.customTaskError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "entity.Task": {
+            "type": "object",
+            "properties": {
+                "approvers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.User"
+                    }
+                },
+                "author": {
+                    "$ref": "#/definitions/entity.User"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "descr": {
+                    "type": "string"
+                },
+                "finished": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "errors.customTaskError": {
+            "type": "object",
+            "properties": {
+                "stackTrace": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        }
+    }
+}

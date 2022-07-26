@@ -1,0 +1,100 @@
+basePath: /
+definitions:
+  entity.Task:
+    properties:
+      approvers:
+        items:
+          $ref: '#/definitions/entity.User'
+        type: array
+      author:
+        $ref: '#/definitions/entity.User'
+      body:
+        type: string
+      descr:
+        type: string
+      finished:
+        type: boolean
+      id:
+        type: integer
+    type: object
+  entity.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+    type: object
+  errors.customTaskError:
+    properties:
+      stackTrace:
+        items:
+          type: integer
+        type: array
+    type: object
+host: :3000
+info:
+  contact:
+    email: alex@mail.ru
+    name: API Support
+    url: https://gitlab.com/g6834/team3/task
+  description: This is a team3 task.service API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Team3.Task.service API
+  version: "1.0"
+paths:
+  /ping:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: accessailability task.service
+  /task:
+    post:
+      consumes:
+      - application/json
+      description: add (create) new task
+      parameters:
+      - description: New Task
+        in: body
+        name: article
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Task'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.customTaskError'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/errors.customTaskError'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+        "503":
+          description: Service Unavailable
+          schema:
+            type: string
+      summary: create task
+swagger: "2.0"
