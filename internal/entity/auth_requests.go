@@ -14,7 +14,7 @@ type AuthResponse struct {
 	Error    string
 }
 
-type RefreshTokenCredits struct { //refresh
+type RefreshTokenCredits struct { // refresh
 	RefreshToken string
 }
 

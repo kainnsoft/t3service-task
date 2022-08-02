@@ -8,11 +8,6 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-const (
-	userCreated string = "Created"
-	userFound   string = "Found"
-)
-
 type UserUseCase struct {
 	userDBRepo UserDBRepoInterface
 	log        *logging.ZeroLogger
@@ -53,11 +48,11 @@ func (userUC *UserUseCase) CreateUser(ctx context.Context, userEmail string) (en
 	return foundUser, nil
 }
 
-func (userUC *UserUseCase) GetUserByEmail(ctx context.Context, email string) (entity.User, error) { // TODO
+func (userUC *UserUseCase) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
 	emptyUser := entity.User{}
 	resp, err := userUC.userDBRepo.GetDBUserByEmail(ctx, email)
 	if err != nil {
 		return emptyUser, err
 	}
 	return resp, nil
-} // TODO
+}

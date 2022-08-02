@@ -12,7 +12,6 @@ const (
 	BadRequest
 	NotFound
 	MethodNotAllowed
-	//add any type you want
 )
 
 type ErrorType uint
@@ -29,8 +28,8 @@ type customTaskError struct {
 }
 
 // Error returns the mssage of a customError
-func (error customTaskError) Error() string {
-	return error.originalError.Error()
+func (e customTaskError) Error() string {
+	return e.originalError.Error()
 }
 
 func (e customTaskError) PrintWithStack() string {

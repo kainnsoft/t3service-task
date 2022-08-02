@@ -9,8 +9,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.6.1
 	github.com/rs/zerolog v1.15.0
+	github.com/segmentio/kafka-go v0.4.32
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/swaggo/http-swagger v1.3.0
 	github.com/swaggo/swag v1.8.1
 	google.golang.org/grpc v1.47.0
@@ -42,7 +43,9 @@ require (
 	github.com/jackc/pgtype v1.11.0 // indirect
 	github.com/jackc/puddle v1.2.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect

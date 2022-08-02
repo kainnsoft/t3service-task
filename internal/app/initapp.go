@@ -15,10 +15,12 @@ import (
 	gp "team3-task/internal/controller/grpc"
 	v1 "team3-task/internal/controller/http/v1"
 	repository "team3-task/internal/repository/db"
+	kafkarepo "team3-task/internal/repository/kafka"
 	"team3-task/internal/usecase"
 
 	//	_ "team3-task/migrations"
 	"team3-task/pkg/httpserver"
+	kafkaPkg "team3-task/pkg/kafka"
 	"team3-task/pkg/logging"
 	"team3-task/pkg/pg"
 
@@ -44,6 +46,18 @@ func Run(cfg *config.Config) {
 		defer insPgDB.Close()
 	}
 
+	// kafka
+	brokers := []string{cfg.KafkaAddress}
+	kafkaProducerAboutTaskEvent, err := kafkaPkg.New(brokers, cfg.KafkaTopicTask, "")
+	kafkaProducerToMailService, err := kafkaPkg.New(brokers, cfg.KafkaTopicMail, "")
+	kafkaProducers := kafkarepo.KafkaProducers{
+		KafProducerAboutTaskEvent: kafkaProducerAboutTaskEvent,
+		KafProducerToMailService:  kafkaProducerToMailService,
+	}
+	if err != nil {
+		log.Error("Can't create kafka Client: %v", err) // Fatal
+	}
+
 	// grpc
 	var grpcClient *gp.GrpcClient = &gp.GrpcClient{}
 	conn, err := grpc.Dial(cfg.GRPC.GRPCAddress, grpc.WithInsecure())
@@ -55,7 +69,7 @@ func Run(cfg *config.Config) {
 	}
 
 	// Use case:
-	inUseCase := getInUseCase(insPgDB, log)
+	inUseCase := getInUseCase(insPgDB, &kafkaProducers, log)
 
 	// HTTP Server
 	mux := http.NewServeMux()
@@ -75,8 +89,6 @@ func Run(cfg *config.Config) {
 		log.Info("app - Run - signal: " + s.String())
 	case err = <-httpServer.Notify():
 		log.Error("app - Run - httpServer.Notify: %w", err)
-		// case err = <-rmqServer.Notify():									// TODO  kafka
-		// 	l.Error(fmt.Errorf("app - Run - rmqServer.Notify: %w", err))
 	}
 
 	// Shutdown
@@ -84,11 +96,6 @@ func Run(cfg *config.Config) {
 	if err != nil {
 		log.Error("app - Run - httpServer.Shutdown: %w", err)
 	}
-
-	// err = rmqServer.Shutdown()										// TODO kafka
-	// if err != nil {
-	// 	l.Error(fmt.Errorf("app - Run - rmqServer.Shutdown: %w", err))
-	// }
 }
 
 func loggerWriter(path string, forErr string) *os.File {
@@ -140,25 +147,23 @@ func migrationUp(strurl string, log *logging.ZeroLogger) {
 	}
 }
 
-func getInUseCase(insPgDB *pg.PgDB, log *logging.ZeroLogger) *usecase.InUseCase {
-	var err error
+func getInUseCase(insPgDB *pg.PgDB, kafkaClient *kafkarepo.KafkaProducers, log *logging.ZeroLogger) *usecase.InUseCase {
 	// first get proper repo
 	var currentTaskUseCase usecase.TaskDBRepoInterface
+	var currentTaskApproversUseCase usecase.TaskApproversDBRepoInterface
 	var currentUserUseCase usecase.UserDBRepoInterface
 	if insPgDB != nil {
 		currentTaskUseCase = repository.NewTaskPGRepo(insPgDB, log)
+		currentTaskApproversUseCase = repository.NewTaskApproversPGRepo(insPgDB, log)
 		currentUserUseCase = repository.NewUserPGRepo(insPgDB, log)
 	} else {
-		currentTaskUseCase, err = repository.NewTaskMockRepo(log)
-		if err != nil {
-			log.Fatal("Can't create repository: %v", err)
-		}
-		currentUserUseCase, err = repository.NewUserMockRepo(log)
+		currentUserUseCase, _ = repository.NewUserMockRepo(log)
 	}
 	currentInUseCase := usecase.NewInUseCase(
 		currentTaskUseCase,
+		currentTaskApproversUseCase,
 		currentUserUseCase,
-		// TODO kafka
+		kafkaClient,
 		log,
 	)
 

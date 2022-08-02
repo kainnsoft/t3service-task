@@ -14,12 +14,12 @@ func NewTaskUseCase(r TaskDBRepoInterface) *TaskUseCase {
 	return &TaskUseCase{r}
 }
 
-func (taskUC *TaskUseCase) CreateTask(ctx context.Context, task entity.Task) (string, error) {
+func (taskUC *TaskUseCase) CreateTask(ctx context.Context, task entity.Task) (int, error) {
 
-	resp, err := taskUC.dbRepo.CreateDBTask(context.Background(), task)
+	taskID, err := taskUC.dbRepo.CreateDBTask(ctx, task)
 	if err != nil {
-		err = fmt.Errorf("usecase.CreateHandle taskUC.dbRepo.Create receivedTask error: %v", err)
-		return resp, err
+		err = fmt.Errorf("usecase.CreateTask taskUC.dbRepo.CreateDBTask error: %v", err)
+		return taskID, err
 	}
-	return resp, nil
+	return taskID, nil
 } // TODO

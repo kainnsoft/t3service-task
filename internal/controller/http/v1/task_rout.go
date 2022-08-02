@@ -37,6 +37,7 @@ func NewTaskRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.Gr
 	// mux.Handle("/update", rout.Update())           // task/{id}  // PUT(id)
 	// mux.Handle("/delete", rout.Delete())           // task/{id}  // DELETE(id)
 	// mux.Handle("/get", rout.Get())                 // task/{id}  // GET(id)
+
 	// mux.Handle("/list", rout.List())               // task       // GET
 
 	mux.Handle("/approvetask", rout.ApproveTask()) // PATCH(id)
@@ -52,7 +53,10 @@ func NewTaskRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.Gr
 func (rout taskRoutes) Ping() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK, I'm ready to read and write from task-service"))
+		_, err := w.Write([]byte("OK, I'm ready to read and write from task-service"))
+		if err != nil {
+			rout.logger.Error("v1.rout Ping error: %v", err)
+		}
 	}
 }
 
@@ -113,26 +117,27 @@ func (rout taskRoutes) Create(w http.ResponseWriter, r *http.Request) {
 	// If we're right here, validation has successed and we got user email
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		rout.logger.Error("v1.rout.taskCreate: ioutil.ReadAll(Body) %v", err)
+		rout.logger.Error("v1.rout Create: ioutil.ReadAll(Body) %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
 
-	strAnswer, err := rout.taskHandler.CreateTaskHandle(r.Context(), body, validationAuthResponse.Username)
+	idCreatedTask, err := rout.taskHandler.CreateTaskHandle(r.Context(), body, validationAuthResponse.Username)
 
 	if err != nil {
-		rout.logger.Error("v1.rout.taskCreate: handle bodi error: %v", err)
+		rout.logger.Error("v1.rout Create: rout.taskHandler.CreateTaskHandle error: %v", err)
 		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}
-	rout.logger.Info("v1.rout.taskCreate: task created with id: %s", strAnswer)
-
-	// TODO send email
-	// TODO send kafka message
+	strAnswer := fmt.Sprintf("created with id: %d", idCreatedTask)
+	rout.logger.Info("v1.rout Create: task %v", strAnswer)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Success! Task created."))
+	_, err = w.Write([]byte("Success! Task " + strAnswer))
+	if err != nil {
+		rout.logger.Error("v1.rout Create error: %v", err)
+	}
 }
 
 func (rout *taskRoutes) Update() http.HandlerFunc { // TODO
@@ -186,7 +191,10 @@ func (rout *taskRoutes) Get(taskId string) http.HandlerFunc { // TODO
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(resp)
+		_, err = w.Write(resp)
+		if err != nil {
+			rout.logger.Error("rout.Get() error: %v", err)
+		}
 	}
 }
 

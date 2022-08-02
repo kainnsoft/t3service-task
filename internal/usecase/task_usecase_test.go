@@ -7,6 +7,7 @@ import (
 	"team3-task/internal/entity"
 	"team3-task/internal/usecase"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -30,19 +31,22 @@ type mockTaskDBRepo struct {
 	mock.Mock
 }
 
-func (r *mockTaskDBRepo) CreateDBTask(ctx context.Context, task entity.Task) (string, error) {
+func (r *mockTaskDBRepo) CreateDBTask(ctx context.Context, task entity.Task) (int, error) {
 	args := r.Called(task)
 	arg0 := args.Get(0)
-	if arg0 == "" {
-		return "", args.Error(1)
+	if arg0 == 0 {
+		return 0, args.Error(1)
 	}
-	return arg0.(string), args.Error(1)
+	return arg0.(int), args.Error(1)
 }
 
 func (r *mockTaskDBRepo) UpdateDBTask(ctx context.Context, task entity.Task) (int, error)
 func (r *mockTaskDBRepo) DeleteDBTask(ctx context.Context, taskId int) error
 func (r *mockTaskDBRepo) GetDBTask(ctx context.Context, taskId int) (entity.Task, error)
 func (r *mockTaskDBRepo) ListDBTask(ctx context.Context) ([]entity.Task, error)
+func (r *mockTaskDBRepo) BeginTransaction(ctx context.Context) (*pgx.Tx, error)
+func (r *mockTaskDBRepo) CommitTransaction(ctx context.Context, txPtr *pgx.Tx) error
+func (r *mockTaskDBRepo) RollbackTransaction(ctx context.Context, txPtr *pgx.Tx)
 
 // tests
 type unitTestSuite struct {
@@ -56,7 +60,7 @@ func TestUnitTestSuite(t *testing.T) {
 func (s *unitTestSuite) TestCreateDBTask() {
 	r := new(mockTaskDBRepo)
 
-	r.On("CreateDBTask", Task1).Return("1", nil) // Added
+	r.On("CreateDBTask", Task1).Return(1, nil) // Added
 
 	l := usecase.NewTaskUseCase(r)
 
@@ -64,7 +68,7 @@ func (s *unitTestSuite) TestCreateDBTask() {
 
 	s.Nil(err, "error must be nil")
 	//s.NotNil(strAnswer, "user must not be empty")
-	s.Equal(strAnswer, "1", "created")
+	s.Equal(strAnswer, 1, "created")
 
 	r.AssertExpectations(s.T())
 }

@@ -22,7 +22,8 @@
 		author_id serial REFERENCES task.users (id),
 		descr VARCHAR(80),
 		body VARCHAR(800),
-		status serial REFERENCES task.task_event_types (id)
+		finished BOOLEAN
+		--status serial REFERENCES task.task_event_types (id)
 	);
 	
 	CREATE TABLE IF NOT EXISTS task.task_approvers(
@@ -43,14 +44,14 @@
 
 -- +goose Down
 -- +goose StatementBegin
-	DROP TABLE IF EXISTS task.task_event_types;
-
+	DROP TABLE IF EXISTS task.task_events; 
+	
 	DROP TABLE IF EXISTS task.task_approvers;
 	
 	DROP TABLE IF EXISTS task.tasks;
 	
 	DROP TABLE IF EXISTS task.users;
 	
-	DROP TABLE IF EXISTS task.task_events; 
+	DROP TABLE IF EXISTS task.task_event_types;
 
 -- +goose StatementEnd
