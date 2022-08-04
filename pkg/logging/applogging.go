@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	c_info  string = "info"
-	c_debug string = "debug"
-	c_warn  string = "warn"
-	c_error string = "error"
-	c_fatal string = "fatal"
+	cInfo  string = "info"
+	cDebug string = "debug"
+	cWarn  string = "warn"
+	cError string = "error"
+	cFatal string = "fatal"
 )
 
 // Interface -.
@@ -34,7 +34,7 @@ type TaskLogger struct {
 
 var _ Interface22 = (*TaskLogger)(nil)
 
-func NewTaskLogger() *TaskLogger { //infoOut io.Writer, errorOut io.Writer, debugOut io.Writer) TaskLogger {
+func NewTaskLogger() *TaskLogger { // infoOut io.Writer, errorOut io.Writer, debugOut io.Writer) TaskLogger {
 	infoLog := standard_log.New(os.Stdout, "INFO\t", standard_log.Ldate|standard_log.Ltime)
 	debugLog := standard_log.New(os.Stdout, "DEBUG\t", standard_log.Ldate|standard_log.Ltime|standard_log.Lshortfile)
 	warnLog := standard_log.New(os.Stderr, "WARN\t", standard_log.Ldate|standard_log.Ltime|standard_log.Lshortfile)
@@ -47,32 +47,33 @@ func NewTaskLogger() *TaskLogger { //infoOut io.Writer, errorOut io.Writer, debu
 		ErrorLog: errorLog,
 		fatalLog: fatalLog,
 	}
+
 	return taskLogger
 }
 
 // Debug -.
 func (tl *TaskLogger) Debug(message interface{}, args ...interface{}) {
-	tl.msg(c_debug, message, args...)
+	tl.msg(cDebug, message, args...)
 }
 
 // Info -.
 func (tl *TaskLogger) Info(message string, args ...interface{}) {
-	tl.msg(c_info, message, args...)
+	tl.msg(cInfo, message, args...)
 }
 
 // Warn -.
 func (tl *TaskLogger) Warn(message interface{}, args ...interface{}) {
-	tl.msg(c_warn, message, args...)
+	tl.msg(cWarn, message, args...)
 }
 
 // Error -.
 func (tl *TaskLogger) Error(message interface{}, args ...interface{}) {
-	tl.msg(c_error, message, args...)
+	tl.msg(cError, message, args...)
 }
 
 // Fatal -.
 func (tl *TaskLogger) Fatal(message interface{}, args ...interface{}) {
-	tl.msg(c_fatal, message, args...)
+	tl.msg(cFatal, message, args...)
 	os.Exit(1)
 }
 
@@ -87,17 +88,17 @@ func (tl *TaskLogger) msg(level string, message interface{}, args ...interface{}
 	}
 }
 
-func (tl *TaskLogger) log(level string, msg string, args ...interface{}) {
+func (tl *TaskLogger) log(level, msg string, args ...interface{}) {
 	switch level {
-	case c_info:
+	case cInfo:
 		tl.infoLog.Printf(msg, args...)
-	case c_debug:
+	case cDebug:
 		tl.debugLog.Printf(msg, args...)
-	case c_warn:
+	case cWarn:
 		tl.warnLog.Printf(msg, args...)
-	case c_error:
+	case cError:
 		tl.ErrorLog.Printf(msg, args...)
-	case c_fatal:
+	case cFatal:
 		tl.fatalLog.Printf(msg, args...)
 	}
 }

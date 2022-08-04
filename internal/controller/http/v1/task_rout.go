@@ -27,9 +27,6 @@ func NewTaskRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.Gr
 
 	// swagger
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
-	// mux.HandleFunc("/swagger/*", httpSwagger.Handler(
-	// 	httpSwagger.URL("http://localhost:3000/swagger/doc.json"), //The url pointing to API definition
-	// ))
 
 	mux.Handle("/ping", rout.Ping()) // GET
 	mux.Handle("/task", rout.Task())
@@ -42,7 +39,6 @@ func NewTaskRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.Gr
 
 	mux.Handle("/approvetask", rout.ApproveTask()) // PATCH(id)
 	mux.Handle("/rejecttask", rout.RejectTask())   // PATCH(id)
-
 }
 
 // Ping godoc
@@ -62,13 +58,13 @@ func (rout taskRoutes) Ping() http.HandlerFunc {
 
 func (rout *taskRoutes) Task() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		hasId := r.URL.Query().Has("id")
-		switch hasId {
+		hasID := r.URL.Query().Has("id")
+		switch hasID {
 		case true:
-			curTaskId := r.URL.Query().Get("id")
+			curTaskID := r.URL.Query().Get("id")
 			switch r.Method {
 			case http.MethodGet:
-				rout.Get(curTaskId)
+				rout.Get(curTaskID)
 			case http.MethodPut:
 				rout.Update()
 			case http.MethodDelete:
@@ -104,7 +100,6 @@ func (rout *taskRoutes) Task() http.HandlerFunc {
 // @Failure 503 {string} string
 // @Router /task [post]
 func (rout taskRoutes) Create(w http.ResponseWriter, r *http.Request) {
-
 	// token validation from grpc auth.service // TODO test
 	// validationAuthResponse, err := rout.checkValidation(r)
 	// if err != nil {
@@ -164,12 +159,14 @@ func (rout *taskRoutes) Get(taskId string) http.HandlerFunc { // TODO
 			return
 		}
 		intTaskId, err := strconv.Atoi(taskId)
+
 		if err != nil {
 			rout.logger.Error("rout.Get() not valid id error: %v, id = %s", err, taskId)
 			http.Error(w, "Not valid task id. Please try id parametr again.", http.StatusBadRequest)
 			return
 		}
 		task, err := rout.taskHandler.GetTaskHandle(context.Background(), intTaskId)
+
 		if err != nil {
 			rout.logger.Error("rout.Get() rout.taskHandler.GetTaskHandle error: %v; intTaskId = %d", err, intTaskId)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -183,6 +180,7 @@ func (rout *taskRoutes) Get(taskId string) http.HandlerFunc { // TODO
 		}
 
 		resp, err := json.MarshalIndent(task, "", "  ")
+
 		if err != nil {
 			rout.logger.Error("rout.Get() json.Marshal error: %v", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -218,11 +216,12 @@ func (rout *taskRoutes) RejectTask() http.HandlerFunc { // TODO
 }
 
 func (rout *taskRoutes) checkValidation(r *http.Request) (entity.AuthResponse, error) {
-	var validationAuthResponse entity.AuthResponse = entity.AuthResponse{}
-	var authRequest entity.AuthRequest = entity.AuthRequest{}
+	validationAuthResponse := entity.AuthResponse{}
+	authRequest := entity.AuthRequest{}
 	accessToken, err := r.Cookie("access")
 	if err != nil {
 		err := errors.Wrapf(err, " validation error occures while cookie getting")
+
 		return validationAuthResponse, err
 	} else {
 		authRequest.AccessToken = accessToken.Value
@@ -230,8 +229,10 @@ func (rout *taskRoutes) checkValidation(r *http.Request) (entity.AuthResponse, e
 	validationAuthResponse, err = rout.grpcClient.CheckAccess(&authRequest)
 	if (err != nil) || (validationAuthResponse.Error != "") {
 		err := errors.Wrapf(err, " validation error occures")
+
 		return validationAuthResponse, err
 	}
+
 	return validationAuthResponse, nil
 }
 
@@ -242,6 +243,7 @@ func (rout taskRoutes) MethodNotAllowed(w http.ResponseWriter) {
 func (rout *taskRoutes) HandleError(w http.ResponseWriter, err error) {
 	var status int
 	errorType := errors.GetType(err)
+
 	switch errorType {
 	case errors.BadRequest:
 		status = http.StatusBadRequest
@@ -252,6 +254,7 @@ func (rout *taskRoutes) HandleError(w http.ResponseWriter, err error) {
 	default:
 		status = http.StatusInternalServerError
 	}
+
 	w.WriteHeader(status)
 
 	var respStr string
@@ -261,5 +264,6 @@ func (rout *taskRoutes) HandleError(w http.ResponseWriter, err error) {
 	} else {
 		respStr = fmt.Sprintf("error %s", err.Error())
 	}
+
 	http.Error(w, respStr, status)
 }

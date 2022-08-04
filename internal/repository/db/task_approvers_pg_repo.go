@@ -4,21 +4,19 @@ import (
 	"context"
 	"team3-task/internal/entity"
 	"team3-task/internal/usecase"
-	"team3-task/pkg/logging"
 	"team3-task/pkg/pg"
 
 	"github.com/jackc/pgx/v4"
 )
 
 type TaskApproversPGRepo struct {
-	logger *logging.ZeroLogger
-	*pg.PgDB
+	*pg.DB
 }
 
 var _ usecase.TaskApproversDBRepoInterface = (*TaskApproversPGRepo)(nil)
 
-func NewTaskApproversPGRepo(pg *pg.PgDB, logger *logging.ZeroLogger) *TaskApproversPGRepo {
-	return &TaskApproversPGRepo{logger, pg}
+func NewTaskApproversPGRepo(pg *pg.DB) *TaskApproversPGRepo {
+	return &TaskApproversPGRepo{pg}
 }
 
 func (repo *TaskApproversPGRepo) InsertDBTaskApprovers(ctx context.Context, txPtr *pgx.Tx, taskId int, userList []entity.User) error {
@@ -26,7 +24,7 @@ func (repo *TaskApproversPGRepo) InsertDBTaskApprovers(ctx context.Context, txPt
 	batch := new(pgx.Batch)
 
 	for _, user := range userList {
-		batch.Queue(query, taskId, user.Id)
+		batch.Queue(query, taskId, user.ID)
 	}
 
 	tx := *txPtr

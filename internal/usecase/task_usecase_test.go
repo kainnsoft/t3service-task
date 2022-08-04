@@ -31,7 +31,7 @@ type mockTaskDBRepo struct {
 	mock.Mock
 }
 
-func (r *mockTaskDBRepo) CreateDBTask(ctx context.Context, task entity.Task) (int, error) {
+func (r *mockTaskDBRepo) CreateDBTask(ctx context.Context, txPtr *pgx.Tx, task *entity.Task) (int, error) {
 	args := r.Called(task)
 	arg0 := args.Get(0)
 	if arg0 == 0 {
@@ -64,7 +64,7 @@ func (s *unitTestSuite) TestCreateDBTask() {
 
 	l := usecase.NewTaskUseCase(r)
 
-	strAnswer, err := l.CreateTask(context.Background(), Task1)
+	strAnswer, err := l.CreateTask(context.Background(), nil, &Task1)
 
 	s.Nil(err, "error must be nil")
 	//s.NotNil(strAnswer, "user must not be empty")

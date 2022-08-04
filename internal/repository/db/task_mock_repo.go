@@ -9,13 +9,14 @@ import (
 	"team3-task/internal/errors"
 	"team3-task/internal/usecase"
 	"team3-task/pkg/logging"
+
+	"github.com/jackc/pgx/v4"
 )
 
 const mockDBPath string = "./mockDB.json"
 
 type TaskMockRepo struct {
 	mockDB *os.File
-	logger *logging.ZeroLogger // TODO скорее всего не нужно - удалить
 }
 
 var _ usecase.TaskDBRepoInterface = (*TaskMockRepo)(nil)
@@ -28,19 +29,19 @@ func NewTaskMockRepo(logger *logging.ZeroLogger) (*TaskMockRepo, error) {
 	return &TaskMockRepo{mockDB: mockDB}, nil
 }
 
-func (repo *TaskMockRepo) CreateDBTask(ctx context.Context, task entity.Task) (string, error) {
+func (repo *TaskMockRepo) CreateDBTask(ctx context.Context, txPtr *pgx.Tx, task *entity.Task) (int, error) {
 
 	sliceOfByteTask, err := json.MarshalIndent(task, "", "  ")
 	if err != nil {
-		return "", errors.Newf("repository TaskMockRepo Create marshal error: %v", err)
+		return 0, errors.Newf("repository TaskMockRepo Create marshal error: %v", err)
 	}
 
 	err = os.WriteFile(mockDBPath, sliceOfByteTask, 0664)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return "1", nil
+	return 1, nil
 }
 
 func (repo *TaskMockRepo) UpdateDBTask(ctx context.Context, task entity.Task) (int, error) {

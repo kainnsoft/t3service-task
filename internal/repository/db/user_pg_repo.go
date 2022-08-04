@@ -7,19 +7,17 @@ import (
 	"team3-task/internal/entity"
 	"team3-task/internal/errors"
 	"team3-task/internal/usecase"
-	"team3-task/pkg/logging"
 	"team3-task/pkg/pg"
 )
 
 type UserPGRepo struct {
-	logger *logging.ZeroLogger
-	*pg.PgDB
+	*pg.DB
 }
 
 var _ usecase.UserDBRepoInterface = (*UserPGRepo)(nil)
 
-func NewUserPGRepo(pg *pg.PgDB, logger *logging.ZeroLogger) *UserPGRepo {
-	return &UserPGRepo{logger, pg}
+func NewUserPGRepo(pg *pg.DB) *UserPGRepo {
+	return &UserPGRepo{pg}
 }
 
 func (repo *UserPGRepo) CreateDBUser(ctx context.Context, userEmail string) (string, error) {
@@ -30,9 +28,7 @@ func (repo *UserPGRepo) CreateDBUser(ctx context.Context, userEmail string) (str
 	if err != nil {
 		return commandTag.String(), errors.AddErrorContext(err, "user", " CreateDBUser insert error")
 	}
-
 	return commandTag.String(), nil // AffectedRows : 1
-
 }
 
 func (repo *UserPGRepo) UpdateDBUser(ctx context.Context, user entity.User) (int, error) {
@@ -61,7 +57,7 @@ func (repo *UserPGRepo) GetDBUserByEmail(ctx context.Context, email string) (ent
 	row := repo.Pool.QueryRow(ctx, "select id, email from task.users where email = $1;", email)
 
 	foundUser := new(entity.User)
-	err := row.Scan(&foundUser.Id, &foundUser.Email)
+	err := row.Scan(&foundUser.ID, &foundUser.Email)
 	if err != nil {
 		return emptyUser, err
 	}

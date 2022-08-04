@@ -2,7 +2,7 @@ package utils
 
 import "net/mail"
 
-func CheckEmail(adress string) error {
-	_, err := mail.ParseAddress(adress)
+func CheckEmail(address string) error {
+	_, err := mail.ParseAddress(address)
 	return err
 }

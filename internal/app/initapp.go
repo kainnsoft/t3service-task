@@ -9,8 +9,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	_ "github.com/lib/pq"
-
 	config "team3-task/config"
 	gp "team3-task/internal/controller/grpc"
 	v1 "team3-task/internal/controller/http/v1"
@@ -18,7 +16,8 @@ import (
 	kafkarepo "team3-task/internal/repository/kafka"
 	"team3-task/internal/usecase"
 
-	//	_ "team3-task/migrations"
+	_ "github.com/lib/pq"
+
 	"team3-task/pkg/httpserver"
 	kafkaPkg "team3-task/pkg/kafka"
 	"team3-task/pkg/logging"
@@ -35,8 +34,6 @@ const (
 )
 
 func Run(cfg *config.Config) {
-
-	var err error
 
 	log := logging.New(cfg.Log.Level) // ZeroLogger
 
@@ -102,6 +99,7 @@ func loggerWriter(path string, forErr string) *os.File {
 	if path == "osStdOut" {
 		return os.Stdout
 	}
+
 	if path == "osStdErr" {
 		return os.Stderr
 	}
@@ -116,7 +114,7 @@ func loggerWriter(path string, forErr string) *os.File {
 	return loggerFile
 }
 
-func includePg(cfg *config.Config, log *logging.ZeroLogger) *pg.PgDB { //log *logging.TaskLogger
+func includePg(cfg *config.Config, log *logging.ZeroLogger) *pg.DB { //log *logging.TaskLogger
 	strurl := fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable&connect_timeout=%d",
 		"postgres",
 		url.QueryEscape(cfg.PG.Username),
@@ -147,22 +145,31 @@ func migrationUp(strurl string, log *logging.ZeroLogger) {
 	}
 }
 
-func getInUseCase(insPgDB *pg.PgDB, kafkaClient *kafkarepo.KafkaProducers, log *logging.ZeroLogger) *usecase.InUseCase {
+func getInUseCase(insPgDB *pg.DB, kafkaClient *kafkarepo.KafkaProducers, log *logging.ZeroLogger) *usecase.InUseCase {
 	// first get proper repo
-	var currentTaskUseCase usecase.TaskDBRepoInterface
-	var currentTaskApproversUseCase usecase.TaskApproversDBRepoInterface
-	var currentUserUseCase usecase.UserDBRepoInterface
+	var (
+		currentTaskUseCase          usecase.TaskDBRepoInterface
+		currentTaskApproversUseCase usecase.TaskApproversDBRepoInterface
+		currentTaskEventsUseCase    usecase.TaskEventsDBRepoInterface
+		currentUserUseCase          usecase.UserDBRepoInterface
+		currentTxUseCase            usecase.TxDBRepoInterface
+	)
+
 	if insPgDB != nil {
-		currentTaskUseCase = repository.NewTaskPGRepo(insPgDB, log)
-		currentTaskApproversUseCase = repository.NewTaskApproversPGRepo(insPgDB, log)
-		currentUserUseCase = repository.NewUserPGRepo(insPgDB, log)
+		currentTaskUseCase = repository.NewTaskPGRepo(insPgDB)
+		currentTaskApproversUseCase = repository.NewTaskApproversPGRepo(insPgDB)
+		currentTaskEventsUseCase = repository.NewTaskEventsPGRepo(insPgDB)
+		currentUserUseCase = repository.NewUserPGRepo(insPgDB)
+		currentTxUseCase = repository.NewTxDBRepo(insPgDB)
 	} else {
 		currentUserUseCase, _ = repository.NewUserMockRepo(log)
 	}
 	currentInUseCase := usecase.NewInUseCase(
 		currentTaskUseCase,
 		currentTaskApproversUseCase,
+		currentTaskEventsUseCase,
 		currentUserUseCase,
+		currentTxUseCase,
 		kafkaClient,
 		log,
 	)

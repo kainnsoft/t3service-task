@@ -14,23 +14,22 @@ const (
 	_defaultConnTimeout = time.Second
 )
 
-type PgDB struct {
+type DB struct {
 	Pool *pgxpool.Pool
 }
 
-func NewInsPgDB(strurl string, maxPoolSize int) (*PgDB, error) {
+func NewInsPgDB(strurl string, maxPoolSize int) (*DB, error) {
+	_ConnAttempts := 3
 
-	var _ConnAttempts int = 3
+	insPgdb := &DB{}
 
-	insPgdb := &PgDB{}
-
-	//Создаем конфиг для пула
+	// Создаем конфиг для пула
 	poolConfig, err := NewPoolConfig(strurl)
 	if err != nil {
-		return nil, fmt.Errorf("Pool config error: %v\n", err)
+		return nil, fmt.Errorf("pool config error: %v\n", err)
 	}
 
-	//Устанавливаем максимальное количество соединений, которые могут находиться в ожидании
+	// Устанавливаем максимальное количество соединений, которые могут находиться в ожидании
 	if maxPoolSize > 1 {
 		poolConfig.MaxConns = int32(maxPoolSize)
 	} else {
@@ -44,6 +43,7 @@ func NewInsPgDB(strurl string, maxPoolSize int) (*PgDB, error) {
 		if err == nil {
 			break
 		}
+
 		log.Printf("Postgres is trying to connect, attempts left: %d", _ConnAttempts)
 		time.Sleep(_defaultConnTimeout)
 		_ConnAttempts--
@@ -60,7 +60,6 @@ func NewInsPgDB(strurl string, maxPoolSize int) (*PgDB, error) {
 
 //Config pool-а подключений
 func NewPoolConfig(connStr string) (*pgxpool.Config, error) {
-
 	poolConfig, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, err
@@ -75,11 +74,12 @@ func NewConnection(poolConfig *pgxpool.Config) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return conn, nil
 }
 
 // Close -.
-func (p *PgDB) Close() {
+func (p *DB) Close() {
 	if p.Pool != nil {
 		p.Pool.Close()
 	}

@@ -15,13 +15,12 @@ const mockUserDBPath string = "./mockUserDB.json"
 
 type UserMockRepo struct {
 	mockDB *os.File
-	logger *logging.ZeroLogger // TODO скорее всего не нужно - удалить
 }
 
 var _ usecase.UserDBRepoInterface = (*UserMockRepo)(nil)
 
 func NewUserMockRepo(logger *logging.ZeroLogger) (*UserMockRepo, error) {
-	mockDB, err := os.OpenFile("mockdb.log", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0664)
+	mockDB, err := os.OpenFile("mockdb.log", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o664)
 	if err != nil {
 		return nil, errors.Newf("error opening mockDB file: %v", err)
 	}

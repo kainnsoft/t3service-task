@@ -16,9 +16,9 @@ func NewTaskApproversUseCase(r TaskApproversDBRepoInterface) *TaskApproversUseCa
 	return &TaskApproversUseCase{r}
 }
 
-func (taUC *TaskApproversUseCase) InsertTaskApprovers(ctx context.Context, txPtr *pgx.Tx, taskId int, approverList []entity.User) error {
+func (taUC *TaskApproversUseCase) InsertTaskApprovers(ctx context.Context, txp *pgx.Tx, taskId int, approverList []entity.User) error {
 
-	err := taUC.dbRepo.InsertDBTaskApprovers(ctx, txPtr, taskId, approverList)
+	err := taUC.dbRepo.InsertDBTaskApprovers(ctx, txp, taskId, approverList)
 	if err != nil {
 		err = fmt.Errorf("usecase.InsertTaskApprovers taUC.dbRepo.InsertDBTaskApprovers error: %v", err)
 		return err

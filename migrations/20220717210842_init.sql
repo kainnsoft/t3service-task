@@ -36,7 +36,7 @@
 		id serial PRIMARY KEY,
 		task_id serial REFERENCES task.tasks (id),
 		user_id serial REFERENCES task.users (id),
-		event_type_id serial REFERENCES task.task_event_types (id),
+		event_type_id INTEGER,
 		event_time timestamp
 	);
 

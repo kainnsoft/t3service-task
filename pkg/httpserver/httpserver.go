@@ -35,9 +35,11 @@ func New(handler http.Handler, cfg config.HTTP, log *logging.ZeroLogger) *Server
 	if time.Duration(cfg.HttpReadTimeout) != _defaultReadTimeout {
 		httpServer.ReadTimeout = time.Duration(cfg.HttpReadTimeout * int(time.Second))
 	}
+
 	if time.Duration(cfg.HttpWriteTimeout) != _defaultWriteTimeout {
 		httpServer.WriteTimeout = time.Duration(cfg.HttpWriteTimeout * int(time.Second))
 	}
+
 	if cfg.HttpAddr != _defaultAddr {
 		httpServer.Addr = cfg.HttpAddr
 	}

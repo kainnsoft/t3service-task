@@ -9,16 +9,17 @@ import (
 
 // интерфейс работы с БД, которыq реализуtтся в файлах репозитория, а "дергаtтся" в файлах этого пакета (usecase)
 type TaskDBRepoInterface interface {
-	CreateDBTask(context.Context, entity.Task) (int, error)
+	CreateDBTask(context.Context, *pgx.Tx, *entity.Task) (int, error)
 	UpdateDBTask(context.Context, entity.Task) (int, error)
 	DeleteDBTask(context.Context, int) error             // int - Task.id
 	GetDBTask(context.Context, int) (entity.Task, error) // int - Task.id
 	ListDBTask(context.Context) ([]entity.Task, error)   // need add filter
-	//------------------------------------------------
-	BeginTransaction(context.Context) (*pgx.Tx, error)
-	CommitTransaction(context.Context, *pgx.Tx) error
-	RollbackTransaction(context.Context, *pgx.Tx)
-	//------------------------------------------------
+}
+
+type TxDBRepoInterface interface {
+	BeginDBTransaction(context.Context) (*pgx.Tx, error)
+	CommitDBTransaction(context.Context, *pgx.Tx) error
+	RollbackDBTransaction(context.Context, *pgx.Tx) error
 }
 
 type TaskApproversDBRepoInterface interface {
@@ -26,6 +27,10 @@ type TaskApproversDBRepoInterface interface {
 	GetTaskApproversByTaskID(context.Context, int) ([]entity.User, error)
 }
 
+type TaskEventsDBRepoInterface interface {
+	InsertDBTaskEvents(context.Context, int, int, entity.KafkaTypes) error
+	GetTaskEventTypeByName(context.Context, entity.KafkaTypes) (int, error)
+}
 type UserDBRepoInterface interface {
 	CreateDBUser(context.Context, string) (string, error)
 	UpdateDBUser(context.Context, entity.User) (int, error)

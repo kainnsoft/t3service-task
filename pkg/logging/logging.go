@@ -17,36 +17,36 @@ type TaskServiceLogger struct {
 
 func NewLogging() *TaskServiceLogger {
 	log = logrus.New()
-	//log.Formatter = &logrus.JSONFormatter{}
 	log.SetReportCaller(false)
 	log.SetOutput(os.Stdout)
+	// log.Formatter = &logrus.JSONFormatter{}
 
 	return &TaskServiceLogger{Log: log}
 }
 
-// Info ...
-func Info(format string, v ...interface{}) {
+// Infof
+func Infof(format string, v ...interface{}) {
 	lock.Lock()
 	log.Infof(format, v...)
 	lock.Unlock()
 }
 
-// Warn ...
-func Warn(format string, v ...interface{}) {
+// Warnf
+func Warnf(format string, v ...interface{}) {
 	lock.Lock()
 	log.Warnf(format, v...)
 	lock.Unlock()
 }
 
-// Error ...
-func Error(format string, v ...interface{}) {
+// Errorf
+func Errorf(format string, v ...interface{}) {
 	lock.Lock()
 	log.Errorf(format, v...)
 	lock.Unlock()
 }
 
-// Fatal ...
-func Fatal(format string, v ...interface{}) {
+// Fatalf
+func Fatalf(format string, v ...interface{}) {
 	lock.Lock()
 	logging.Fatalf(format, v...)
 	lock.Unlock()

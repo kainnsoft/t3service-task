@@ -16,24 +16,29 @@ type KafkaProducers struct {
 }
 
 func SendMessagesToKafka(c *kafkaPkg.Client, task *entity.Task, taskType entity.KafkaTypes, taskUser string, msgType entity.KafkaTypes) error {
-	var msgValue []byte
-	var err error
+	var (
+		msgValue []byte
+		err      error
+	)
+
 	switch msgType {
 	case entity.AboutTaskEvent:
-		msgNew := entity.NewKafkaMsgAboutTaskEvent(task, taskType.String(), taskUser)
+		msgNew := entity.NewKafkaMsgAboutTaskEvent(task, taskType, taskUser)
 		msgValue, err = json.MarshalIndent(msgNew, "", " ")
+
 		if err != nil {
 			return fmt.Errorf("repository.SendMessagesToKafka json.Marshal error: %v", err)
 		}
 	case entity.ToMailService:
-		msgNew := entity.NewKafkaMsgToMailService(task, taskType.String(), taskUser)
+		msgNew := entity.NewKafkaMsgToMailService(task, taskType, taskUser)
 		msgValue, err = json.MarshalIndent(msgNew, "", " ")
+
 		if err != nil {
 			return fmt.Errorf("repository.SendMessagesToKafka json.Marshal error: %v", err)
 		}
 	}
 
-	keyTaskId := strconv.Itoa(task.Id)
+	keyTaskId := strconv.Itoa(task.ID)
 	msg := []kafka.Message{
 		{
 			Key:   []byte(keyTaskId),

@@ -20,7 +20,7 @@ type taskErrorContext struct {
 	Message string
 }
 
-type customTaskError struct {
+type CustomTaskError struct {
 	errorType     ErrorType
 	originalError error
 	StackTrace    []byte
@@ -28,55 +28,55 @@ type customTaskError struct {
 }
 
 // Error returns the mssage of a customError
-func (e customTaskError) Error() string {
+func (e CustomTaskError) Error() string {
 	return e.originalError.Error()
 }
 
-func (e customTaskError) PrintWithStack() string {
+func (e *CustomTaskError) PrintWithStack() string {
 	return fmt.Sprintf("error: %v, \n context: %v \n Stack trace %v \n", e.Error(), e.contextInfo, string(e.StackTrace))
 }
 
 //-------------------------------------------------------------------
 
 // New creates a new customError
-func (errorType ErrorType) New(msg string) customTaskError {
-	return customTaskError{errorType: errorType, originalError: errors.New(msg)}
+func (errorType ErrorType) New(msg string) CustomTaskError {
+	return CustomTaskError{errorType: errorType, originalError: errors.New(msg)}
 }
 
 // New creates a new customError with formatted message
-func (errorType ErrorType) Newf(msg string, args ...interface{}) customTaskError {
+func (errorType ErrorType) Newf(msg string, args ...interface{}) CustomTaskError {
 	stack := getStack()
-	return customTaskError{errorType: errorType,
+	return CustomTaskError{errorType: errorType,
 		originalError: fmt.Errorf(msg, args...),
 		StackTrace:    stack}
 }
 
 // Wrap creates a new wrapped error
-func (errorType ErrorType) Wrap(err error, msg string) customTaskError {
+func (errorType ErrorType) Wrap(err error, msg string) CustomTaskError {
 	return errorType.Wrapf(err, msg)
 }
 
 // Wrap creates a new wrapped error with formatted message
-func (errorType ErrorType) Wrapf(err error, msg string, args ...interface{}) customTaskError {
-	return customTaskError{errorType: errorType, originalError: errors.Wrapf(err, msg, args...)}
+func (errorType ErrorType) Wrapf(err error, msg string, args ...interface{}) CustomTaskError {
+	return CustomTaskError{errorType: errorType, originalError: errors.Wrapf(err, msg, args...)}
 }
 
 //-------------------------------------------------------------------
 
 // New creates a new customError
-func New(msg string) customTaskError {
-	return customTaskError{errorType: NoType, originalError: errors.New(msg)}
+func New(msg string) CustomTaskError {
+	return CustomTaskError{errorType: NoType, originalError: errors.New(msg)}
 }
 
 // New creates a new customError with formatted message
-func Newf(msg string, args ...interface{}) customTaskError {
+func Newf(msg string, args ...interface{}) CustomTaskError {
 	err := fmt.Errorf(msg, args...)
 
-	return customTaskError{errorType: NoType, originalError: err}
+	return CustomTaskError{errorType: NoType, originalError: err}
 }
 
 // Wrap creates a new wrapped error
-func Wrap(err error, msg string) customTaskError {
+func Wrap(err error, msg string) CustomTaskError {
 	return Wrapf(err, msg)
 }
 
@@ -86,17 +86,18 @@ func Cause(err error) error {
 }
 
 // Wrapf wraps an error with format string
-func Wrapf(err error, msg string, args ...interface{}) customTaskError {
+func Wrapf(err error, msg string, args ...interface{}) CustomTaskError {
 	wrappedError := errors.Wrapf(err, msg, args...)
-	if customErr, ok := err.(customTaskError); ok {
-		return customTaskError{
+
+	if customErr, ok := err.(CustomTaskError); ok {
+		return CustomTaskError{
 			errorType:     customErr.errorType,
 			originalError: wrappedError,
 			contextInfo:   customErr.contextInfo,
 		}
 	}
 
-	return customTaskError{errorType: NoType, originalError: wrappedError}
+	return CustomTaskError{errorType: NoType, originalError: wrappedError}
 }
 
 //-------------------------------------------------------
@@ -104,28 +105,31 @@ func Wrapf(err error, msg string, args ...interface{}) customTaskError {
 // AddErrorContext adds a context to an error
 func AddErrorContext(err error, field, message string) error {
 	context := taskErrorContext{Field: field, Message: message}
-	if customErr, ok := err.(customTaskError); ok {
-		return customTaskError{errorType: customErr.errorType, originalError: customErr.originalError, contextInfo: context}
+
+	if customErr, ok := err.(CustomTaskError); ok {
+		return CustomTaskError{errorType: customErr.errorType, originalError: customErr.originalError, contextInfo: context}
 	}
 
-	return customTaskError{errorType: NoType, originalError: err, contextInfo: context}
+	return CustomTaskError{errorType: NoType, originalError: err, contextInfo: context}
 }
 
 // GetErrorContext returns the error context
 func GetErrorContext(err error) map[string]string {
 	emptyContext := taskErrorContext{}
-	customErr, ok := err.(customTaskError)
+	customErr, ok := err.(CustomTaskError)
+
 	if ok {
 		if customErr.contextInfo != emptyContext {
 			return map[string]string{"field": customErr.contextInfo.Field, "message": customErr.contextInfo.Message}
 		}
 	}
+
 	return nil
 }
 
 // GetType returns the error type
 func GetType(err error) ErrorType {
-	if customErr, ok := err.(customTaskError); ok {
+	if customErr, ok := err.(CustomTaskError); ok {
 		return customErr.errorType
 	}
 
@@ -133,7 +137,7 @@ func GetType(err error) ErrorType {
 }
 
 func CheckErrorType(err error) error {
-	if customErr, ok := err.(customTaskError); ok {
+	if customErr, ok := err.(CustomTaskError); ok {
 		return customErr
 	}
 
@@ -142,12 +146,15 @@ func CheckErrorType(err error) error {
 
 func getStack() []byte {
 	buf := make([]byte, 1024)
+
 	for {
 		n := runtime.Stack(buf, true)
 		if n < len(buf) {
 			break
 		}
+
 		buf = make([]byte, 2*len(buf))
 	}
+
 	return buf
 }

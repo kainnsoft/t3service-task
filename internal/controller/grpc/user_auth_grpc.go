@@ -28,11 +28,14 @@ func (c *GrpcClient) CheckAccess(authRequest *entity.AuthRequest) (entity.AuthRe
 	if err != nil {
 		return authResponse, err
 	}
+
 	err = utils.CheckEmail(resp.Username)
 	if err != nil {
 		return authResponse, errors.Newf("email is incorrect, please, relogin")
 	}
+
 	authResponse.Username = resp.Username
 	authResponse.Error = resp.Error
+
 	return authResponse, nil
 }
