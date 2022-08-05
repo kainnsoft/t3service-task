@@ -11,16 +11,16 @@ https://www.youtube.com/watch?v=V6lQG6d5LgU
 `/internal/app/initapp.go`
 Создание (конструктор New) и запуск основных компонентов м/сервиса. Передача в них зависимостей (Dependency injection)
 
-# Основные компоненты:
+## Основные компоненты
 - БД postgres (реализация в pkg/pg/pg.go). Передаем в нее зависимость - структуру cfg
 - Структура taskUseCase. Основа обработки бизнес логики. Инкапсулирует через поле dbRepo интерфейс работы с БД. Сама структура имплементирует интерфейс (type TaskHandler interface) для вызова ее из методов роутера.
 - http server - стандартный сервер (реализация в pkg/httpserver/httpserver.go) и стандартный роутер. Создаем роутер и передаём его вместе со структурой cfg в реализацию сервера
 
-# Сущности
+### Сущности
 `/internal/entity/`
 Здесь располагаются сущности бизнес-модели
 
-# Бизнес логика
+### Бизнес логика
 `/internal/usecase/`
 Бизнес логика. Не зависит от реализации репозитория.
 InUseCase - обрабатывает входящие запросы (общается с фронтом - роутером через интерфейс). Реализует методы TaskHandlerInterface, которые "дергаются" из роутера.
@@ -31,13 +31,13 @@ InUseCase - обрабатывает входящие запросы (общае
 - реализация интерфейса репозитория для БД postgresql в файле /internal/repository/task_pg_repo.go
                                     для простой записи в файл - /internal/repository/task_mock_repo.go
 
-# Репозиторий
+### Репозиторий
 `/internal/repository/`
 Здесь располагаются файлы работы с БД и kafka.
 - В случае с БД в репозиторий получаем зависимости - БД postgres и модели - entities. Непосредственные CRUDL-операции с БД. Располагающиеся здесь методы реализуют интерфейсы работы с БД, объявленные в usecase package in /internal/usecase/interfaces.go  (type TaskDBRepo interface)
 - В случае с kafka аналогично
 
-# Входящие запросы
+### Входящие запросы
 `/internal/controller/grpc`
 Методы клиента grpc, который "дергает" сервис auth и проверяет валидность токена user-а
 
@@ -49,19 +49,19 @@ Router<br>
 `/internal/controller/http/v1/interfaces.go`
 Интерфейсы работы с юзкейсами (type TaskHandler interface), которые реализуются в файлах пакета usecase, а "дергаются" в методах http controller-а (/internal/controller/http/v1/task_rout.go)
 
-# GRPC
+### GRPC
 `/api/grpc/proto` - здесь контракт
 `/api/grpc/gen` - здесь сгенерированные файлы
-# Логирование:
+### Логирование:
 `/pkg/logging/applogging.go`
 Логгер на базе стандартного логера. Для каждого уровня логирования создан свой логгер. Цель - возможность записывать логи каждого уровня в разные файлы. Наверняка это позволяют делать и другие логгеры, но пока реализовано на стандартном. <br>
 Вывод будет осуществляться в три файла - Info (level Info), Error (levels Warn, Error, Fatal) и Debug (level Debug) - это задается в конструкторе NewTaskLogger.
 Куда будут выводиться логи задается в config-файле (секция Log) задается путь к файлу. По умолчанию Info и Debug levels в StdOut, а остальные в StdErr.
 
 
-### Request bodys
+## Request bodys
 
-# Create
+### Create
 `{
 	"descr": "descr",
 	"body": "body",
@@ -80,7 +80,7 @@ Router<br>
 	]
 }`
 
-# Update (PUT)  // id in path
+### Update (PUT)  // id in path
 `{
 	"descr": "descr",
 	"body": "body",

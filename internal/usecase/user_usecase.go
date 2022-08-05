@@ -23,9 +23,11 @@ func (userUC *UserUseCase) CheckAndReturnUserByEmail(ctx context.Context, email 
 	if (err != nil) && (err != pgx.ErrNoRows) {
 		return emptyUser, err
 	}
+
 	if foundUser != emptyUser {
 		return foundUser, nil
 	}
+
 	createdUser, err := userUC.CreateUser(ctx, email)
 	if err != nil {
 		return emptyUser, err
@@ -35,7 +37,6 @@ func (userUC *UserUseCase) CheckAndReturnUserByEmail(ctx context.Context, email 
 }
 
 func (userUC *UserUseCase) CreateUser(ctx context.Context, userEmail string) (entity.User, error) {
-
 	emptyUser := entity.User{}
 	_, err := userUC.userDBRepo.CreateDBUser(ctx, userEmail)
 	if err != nil {

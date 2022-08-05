@@ -12,8 +12,8 @@ type TxDBRepo struct {
 	*pg.DB
 }
 
-func NewTxDBRepo(pg *pg.DB) *TxDBRepo {
-	return &TxDBRepo{pg}
+func NewTxDBRepo(pgdb *pg.DB) *TxDBRepo {
+	return &TxDBRepo{pgdb}
 }
 
 var _ usecase.TxDBRepoInterface = (*TxDBRepo)(nil)

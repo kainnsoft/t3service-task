@@ -18,22 +18,22 @@ type TaskEventsPGRepo struct {
 
 var _ usecase.TaskEventsDBRepoInterface = (*TaskEventsPGRepo)(nil)
 
-func NewTaskEventsPGRepo(pg *pg.DB) *TaskEventsPGRepo {
-	return &TaskEventsPGRepo{pg}
+func NewTaskEventsPGRepo(pgdb *pg.DB) *TaskEventsPGRepo {
+	return &TaskEventsPGRepo{pgdb}
 }
 
-func (repo *TaskEventsPGRepo) InsertDBTaskEvents(ctx context.Context, taskID int, userId int, taskEventType entity.KafkaTypes) error {
+func (repo *TaskEventsPGRepo) InsertDBTaskEvents(ctx context.Context, taskID, userID int, taskEventType entity.KafkaTypes) error {
 	queryStr := "INSERT INTO task.task_events (task_id, user_id, event_type_id, event_time) VALUES ($1, $2, $3, $4);"
 
-	taskEventTypeId, err := repo.GetTaskEventTypeByName(ctx, taskEventType)
+	taskEventTypeID, err := repo.GetTaskEventTypeByName(ctx, taskEventType)
 	if err != nil {
 		return fmt.Errorf("repository (repo *TaskEventsPGRepo) GetTaskEventTypeByName error: %v", err)
 	}
 
 	_, err = repo.Pool.Exec(ctx, queryStr,
 		taskID,
-		userId,
-		taskEventTypeId,
+		userID,
+		taskEventTypeID,
 		time.Now())
 	if err != nil {
 		return errors.Wrapf(err, "repository (repo *TaskEventsPGRepo) InsertDBTaskEvents error")
@@ -45,12 +45,12 @@ func (repo *TaskEventsPGRepo) GetTaskEventTypeByName(ctx context.Context, taskEv
 	const queryStr = "select id from task.task_event_types where task_type = $1"
 	row := repo.Pool.QueryRow(ctx, queryStr, taskEventType)
 
-	var taskTypeId int
-	err := row.Scan(&taskTypeId)
+	var taskTypeID int
+	err := row.Scan(&taskTypeID)
 	if err == pgx.ErrNoRows {
-		return taskTypeId, err
+		return taskTypeID, err
 	} else if err != nil {
-		return taskTypeId, err
+		return taskTypeID, err
 	}
-	return taskTypeId, nil
+	return taskTypeID, nil
 }

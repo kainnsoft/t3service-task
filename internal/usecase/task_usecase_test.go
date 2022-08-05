@@ -40,7 +40,7 @@ func (r *mockTaskDBRepo) CreateDBTask(ctx context.Context, txPtr *pgx.Tx, task *
 	return arg0.(int), args.Error(1)
 }
 
-func (r *mockTaskDBRepo) UpdateDBTask(ctx context.Context, task entity.Task) (int, error)
+func (r *mockTaskDBRepo) UpdateDBTask(ctx context.Context, task *entity.Task) (int, error)
 func (r *mockTaskDBRepo) DeleteDBTask(ctx context.Context, taskId int) error
 func (r *mockTaskDBRepo) GetDBTask(ctx context.Context, taskId int) (entity.Task, error)
 func (r *mockTaskDBRepo) ListDBTask(ctx context.Context) ([]entity.Task, error)

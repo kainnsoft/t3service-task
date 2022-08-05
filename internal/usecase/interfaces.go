@@ -10,7 +10,7 @@ import (
 // интерфейс работы с БД, которыq реализуtтся в файлах репозитория, а "дергаtтся" в файлах этого пакета (usecase)
 type TaskDBRepoInterface interface {
 	CreateDBTask(context.Context, *pgx.Tx, *entity.Task) (int, error)
-	UpdateDBTask(context.Context, entity.Task) (int, error)
+	UpdateDBTask(context.Context, *entity.Task) (int, error)
 	DeleteDBTask(context.Context, int) error             // int - Task.id
 	GetDBTask(context.Context, int) (entity.Task, error) // int - Task.id
 	ListDBTask(context.Context) ([]entity.Task, error)   // need add filter

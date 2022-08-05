@@ -26,7 +26,7 @@ func NewInsPgDB(strurl string, maxPoolSize int) (*DB, error) {
 	// Создаем конфиг для пула
 	poolConfig, err := NewPoolConfig(strurl)
 	if err != nil {
-		return nil, fmt.Errorf("pool config error: %v\n", err)
+		return nil, fmt.Errorf("pool config error: %v", err)
 	}
 
 	// Устанавливаем максимальное количество соединений, которые могут находиться в ожидании
@@ -58,7 +58,7 @@ func NewInsPgDB(strurl string, maxPoolSize int) (*DB, error) {
 	return insPgdb, nil
 }
 
-//Config pool-а подключений
+// Config pool-а подключений
 func NewPoolConfig(connStr string) (*pgxpool.Config, error) {
 	poolConfig, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
@@ -68,7 +68,7 @@ func NewPoolConfig(connStr string) (*pgxpool.Config, error) {
 	return poolConfig, nil
 }
 
-//Функция-обертка для создания подключения с помощью пула
+// Функция-обертка для создания подключения с помощью пула
 func NewConnection(poolConfig *pgxpool.Config) (*pgxpool.Pool, error) {
 	conn, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
 	if err != nil {

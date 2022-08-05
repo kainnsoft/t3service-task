@@ -15,7 +15,12 @@ type KafkaProducers struct {
 	KafProducerToMailService  *kafkaPkg.Client
 }
 
-func SendMessagesToKafka(c *kafkaPkg.Client, task *entity.Task, taskType entity.KafkaTypes, taskUser string, msgType entity.KafkaTypes) error {
+func SendMessagesToKafka(c *kafkaPkg.Client,
+	task *entity.Task,
+	taskType entity.KafkaTypes,
+	taskUser string,
+	msgType entity.KafkaTypes) error {
+
 	var (
 		msgValue []byte
 		err      error
@@ -38,16 +43,18 @@ func SendMessagesToKafka(c *kafkaPkg.Client, task *entity.Task, taskType entity.
 		}
 	}
 
-	keyTaskId := strconv.Itoa(task.ID)
+	keyTaskID := strconv.Itoa(task.ID)
 	msg := []kafka.Message{
 		{
-			Key:   []byte(keyTaskId),
+			Key:   []byte(keyTaskID),
 			Value: msgValue,
 		},
 	}
 	err = c.SendMessages(msg)
+
 	if err != nil {
 		return fmt.Errorf("repository.SendMessagesToKafka c.SendMessages(msg) error: %v", err)
 	}
+
 	return nil
 }

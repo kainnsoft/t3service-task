@@ -15,13 +15,12 @@ import (
 	repository "team3-task/internal/repository/db"
 	kafkarepo "team3-task/internal/repository/kafka"
 	"team3-task/internal/usecase"
-
-	_ "github.com/lib/pq"
-
 	"team3-task/pkg/httpserver"
 	kafkaPkg "team3-task/pkg/kafka"
 	"team3-task/pkg/logging"
 	"team3-task/pkg/pg"
+
+	_ "github.com/lib/pq"
 
 	"github.com/pressly/goose/v3"
 	"google.golang.org/grpc"
@@ -34,7 +33,6 @@ const (
 )
 
 func Run(cfg *config.Config) {
-
 	log := logging.New(cfg.Log.Level) // ZeroLogger
 
 	// db
@@ -51,12 +49,13 @@ func Run(cfg *config.Config) {
 		KafProducerAboutTaskEvent: kafkaProducerAboutTaskEvent,
 		KafProducerToMailService:  kafkaProducerToMailService,
 	}
+
 	if err != nil {
 		log.Error("Can't create kafka Client: %v", err) // Fatal
 	}
 
 	// grpc
-	var grpcClient *gp.GrpcClient = &gp.GrpcClient{}
+	var grpcClient *gp.GClient = &gp.GClient{}
 	conn, err := grpc.Dial(cfg.GRPC.GRPCAddress, grpc.WithInsecure())
 	if err != nil {
 		log.Error("Can't create GRPC connection: %v", err) // Fatal
@@ -103,7 +102,7 @@ func loggerWriter(path string, forErr string) *os.File {
 	if path == "osStdErr" {
 		return os.Stderr
 	}
-	loggerFile, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0664)
+	loggerFile, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o664)
 	if err != nil {
 		if forErr == logForError {
 			return os.Stderr
@@ -129,6 +128,7 @@ func includePg(cfg *config.Config, log *logging.ZeroLogger) *pg.DB { //log *logg
 		log.Error("Can't create DB connection: %v", err) // Fatal
 		return nil
 	}
+
 	migrationUp(strurl, log)
 
 	return insPgDB

@@ -6,26 +6,27 @@ import (
 )
 
 type KafkaMsgAboutTaskEvent struct {
-	TaskId          int32
-	Time            time.Time
+	TaskID          int32
+	ApproversNumber int32
 	Type            KafkaTypes
 	User            string
-	ApproversNumber int32
+	Time            time.Time
 }
 
 func NewKafkaMsgAboutTaskEvent(task *Task, taskType KafkaTypes, taskUserEmail string) *KafkaMsgAboutTaskEvent {
 	kafkaMsg := KafkaMsgAboutTaskEvent{
-		TaskId:          int32(task.ID),
+		TaskID:          int32(task.ID),
 		Time:            time.Now(),
 		Type:            taskType,
 		User:            taskUserEmail,
 		ApproversNumber: int32(len(task.Approvers)),
 	}
+
 	return &kafkaMsg
 }
 
 type KafkaMsgToMailService struct {
-	TaskId      int32      `json:"task_id"`
+	TaskID      int32      `json:"task_id"`
 	Description string     `json:"description"`
 	Body        string     `json:"body"`
 	Addressee   string     `json:"addressee"`
@@ -36,7 +37,7 @@ type KafkaMsgToMailService struct {
 
 func NewKafkaMsgToMailService(task *Task, taskType KafkaTypes, userEmail string) *KafkaMsgToMailService {
 	kafkaMsg := KafkaMsgToMailService{
-		TaskId:      int32(task.ID),
+		TaskID:      int32(task.ID),
 		Description: task.Descr,
 		Body:        task.Body,
 		Addressee:   userEmail,

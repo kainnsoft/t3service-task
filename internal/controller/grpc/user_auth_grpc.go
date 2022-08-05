@@ -11,20 +11,22 @@ import (
 	"google.golang.org/grpc"
 )
 
-type GrpcClient struct {
+type GClient struct {
 	client gp.AuthApiClient
 	log    *logging.ZeroLogger
 }
 
-func NewGrpcClient(conn *grpc.ClientConn, log *logging.ZeroLogger) *GrpcClient {
+func NewGrpcClient(conn *grpc.ClientConn, log *logging.ZeroLogger) *GClient {
 	client := gp.NewAuthApiClient(conn)
-	grpcClient := GrpcClient{client: client, log: log}
+	grpcClient := GClient{client: client, log: log}
+
 	return &grpcClient
 }
 
-func (c *GrpcClient) CheckAccess(authRequest *entity.AuthRequest) (entity.AuthResponse, error) {
+func (c *GClient) CheckAccess(authRequest *entity.AuthRequest) (entity.AuthResponse, error) {
 	authResponse := entity.AuthResponse{}
 	resp, err := c.client.Authenticate(context.Background(), &gp.AuthRequest{AccessToken: authRequest.AccessToken})
+
 	if err != nil {
 		return authResponse, err
 	}

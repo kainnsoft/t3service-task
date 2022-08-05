@@ -15,8 +15,8 @@ type TaskApproversPGRepo struct {
 
 var _ usecase.TaskApproversDBRepoInterface = (*TaskApproversPGRepo)(nil)
 
-func NewTaskApproversPGRepo(pg *pg.DB) *TaskApproversPGRepo {
-	return &TaskApproversPGRepo{pg}
+func NewTaskApproversPGRepo(pgdb *pg.DB) *TaskApproversPGRepo {
+	return &TaskApproversPGRepo{pgdb}
 }
 
 func (repo *TaskApproversPGRepo) InsertDBTaskApprovers(ctx context.Context, txPtr *pgx.Tx, taskId int, userList []entity.User) error {
@@ -37,8 +37,9 @@ func (repo *TaskApproversPGRepo) InsertDBTaskApprovers(ctx context.Context, txPt
 	return nil
 }
 
-func (repo *TaskApproversPGRepo) GetTaskApproversByTaskID(ctx context.Context, taskId int) ([]entity.User, error) {
+func (repo *TaskApproversPGRepo) GetTaskApproversByTaskID(ctx context.Context, taskID int) ([]entity.User, error) {
 	userList := make([]entity.User, 0)
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
+
 	return userList, nil // TODO
 }

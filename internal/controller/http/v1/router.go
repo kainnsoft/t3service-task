@@ -6,7 +6,7 @@ import (
 	"team3-task/pkg/logging"
 )
 
-func NewRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.GrpcClient, log *logging.ZeroLogger) {
+func NewRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.GClient, log *logging.ZeroLogger) {
 	// Routers
 	NewTaskRouter(mux, t, grpcClient, log)
 }

@@ -32,16 +32,16 @@ func New(handler http.Handler, cfg config.HTTP, log *logging.ZeroLogger) *Server
 		//ErrorLog:     log.ErrorLog, // вопрос ментору: как лучше передавать сюда эту зависимость? или лучше здесь использовать стандартный логгер?
 	}
 
-	if time.Duration(cfg.HttpReadTimeout) != _defaultReadTimeout {
-		httpServer.ReadTimeout = time.Duration(cfg.HttpReadTimeout * int(time.Second))
+	if time.Duration(cfg.HTTPReadTimeout) != _defaultReadTimeout {
+		httpServer.ReadTimeout = time.Duration(cfg.HTTPReadTimeout * int(time.Second))
 	}
 
-	if time.Duration(cfg.HttpWriteTimeout) != _defaultWriteTimeout {
-		httpServer.WriteTimeout = time.Duration(cfg.HttpWriteTimeout * int(time.Second))
+	if time.Duration(cfg.HTTPWriteTimeout) != _defaultWriteTimeout {
+		httpServer.WriteTimeout = time.Duration(cfg.HTTPWriteTimeout * int(time.Second))
 	}
 
-	if cfg.HttpAddr != _defaultAddr {
-		httpServer.Addr = cfg.HttpAddr
+	if cfg.HTTPAddr != _defaultAddr {
+		httpServer.Addr = cfg.HTTPAddr
 	}
 
 	s := &Server{

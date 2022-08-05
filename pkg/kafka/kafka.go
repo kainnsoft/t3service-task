@@ -12,7 +12,7 @@ type Client struct {
 }
 
 // New создает и инициализирует клиента Kafka.
-func New(brokers []string, topic, groupId string) (*Client, error) {
+func New(brokers []string, topic, groupID string) (*Client, error) {
 	if len(brokers) == 0 || brokers[0] == "" || topic == "" {
 		return nil, errors.New("не указаны параметры подключения к Kafka")
 	}
@@ -30,5 +30,6 @@ func New(brokers []string, topic, groupId string) (*Client, error) {
 
 func (c *Client) SendMessages(messages []kafka.Message) error {
 	err := c.Writer.WriteMessages(context.Background(), messages...)
+
 	return err
 }

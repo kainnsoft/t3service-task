@@ -49,6 +49,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 	err := json.Unmarshal(data, &receivedTask)
 	if err != nil {
 		err = fmt.Errorf("usecase.CreateTaskHandle unmarshal receivedTask error: %v", err)
+
 		return taskID, err
 	}
 
@@ -57,10 +58,12 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 	if err != nil {
 		return taskID, errors.Wrapf(err, "email is incorrect, please, check author information")
 	}
+
 	user, err := inUC.userUseCase.CheckAndReturnUserByEmail(ctx, authorEmail)
 	if err != nil {
 		return taskID, errors.Wrapf(err, "something went wrong, can't create author as user, please, try again")
 	}
+
 	receivedTask.Author = user
 
 	// first - write users
@@ -71,6 +74,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 		if err != nil {
 			return taskID, errors.Wrapf(err, "email is incorrect, please, check approver information: %v", v.Email)
 		}
+
 		curApprover, err := inUC.userUseCase.CheckAndReturnUserByEmail(ctx, v.Email)
 		if err != nil {
 			return taskID, errors.Wrapf(err, "something went wrong, can't create approver %v as user, please, try again", v.Email)
@@ -103,6 +107,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 			inUC.log.Error("in usecase.CreateTaskHandle inUC.txUseCase.CreateTask RollbackTransaction error :%v", rberr)
 		}
 		err = fmt.Errorf("in usecase.CreateTaskHandle inUC.taskUseCase.CreateTask error: %v", err)
+
 		return taskID, err
 	}
 
@@ -114,6 +119,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 			inUC.log.Error("in usecase.CreateTaskHandle inUC.txUseCase.InsertTaskApprovers RollbackTransaction error :%v", rberr)
 		}
 		err = fmt.Errorf("in usecase.CreateTaskHandle inUC.taskApproversUseCase.InsertTaskApprovers error: %v", err)
+
 		return taskID, err
 	}
 	receivedTask.ID = taskID
@@ -126,6 +132,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 			inUC.log.Error("in usecase.CreateTaskHandle inUC.taskEventsUseCase.InsertTaskEvent RollbackTransaction error :%v", rberr)
 		}
 		err = fmt.Errorf("in usecase.CreateTaskHandle inUC.taskEventsUseCase.InsertTaskEvent error: %v", err)
+
 		return taskID, err
 	}
 
@@ -145,6 +152,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 			inUC.log.Error("in usecase.CreateTaskHandle repo.SendMessagesToKafka RollbackTransaction error :%v", rberr)
 		}
 		err = fmt.Errorf("usecase.CreateHandle repo.SendMessagesToKafka error: %v", err)
+
 		return taskID, err
 	}
 
@@ -152,6 +160,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 	err = inUC.txUseCase.CommitTransaction(ctx, tx)
 	if err != nil {
 		inUC.log.Error("in usecase.CreateTaskHandle CommitTransaction error :%v", err)
+
 		return taskID, err
 	}
 	//-----------------------------------
@@ -159,7 +168,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 	return taskID, nil
 }
 
-func (inUC *InUseCase) UpdateTaskHandle(ctx context.Context, task entity.Task) (int, error) {
+func (inUC *InUseCase) UpdateTaskHandle(ctx context.Context, task *entity.Task) (int, error) {
 	// resp, err := taskUC.dbRepo.UpdateDBTask(context.Background(), task)
 	// if err != nil {
 	// 	return 0, err
@@ -167,7 +176,7 @@ func (inUC *InUseCase) UpdateTaskHandle(ctx context.Context, task entity.Task) (
 	return 0, nil
 } // TODO
 
-func (inUC *InUseCase) DeleteTaskHandle(ctx context.Context, taskId int) error {
+func (inUC *InUseCase) DeleteTaskHandle(ctx context.Context, taskID int) error {
 	// err := taskUC.dbRepo.DeleteDBTask(context.Background(), taskId)
 	// if err != nil {
 	// 	return err
@@ -175,7 +184,7 @@ func (inUC *InUseCase) DeleteTaskHandle(ctx context.Context, taskId int) error {
 	return nil
 } // TODO
 
-func (inUC *InUseCase) GetTaskHandle(ctx context.Context, taskId int) (entity.Task, error) { // TODO
+func (inUC *InUseCase) GetTaskHandle(ctx context.Context, taskID int) (entity.Task, error) { // TODO
 	// resp, err := taskUC.dbRepo.GetDBTask(context.Background(), taskId)
 	// if err != nil {
 	// 	return entity.Task{}, err

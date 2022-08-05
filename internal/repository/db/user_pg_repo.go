@@ -16,8 +16,8 @@ type UserPGRepo struct {
 
 var _ usecase.UserDBRepoInterface = (*UserPGRepo)(nil)
 
-func NewUserPGRepo(pg *pg.DB) *UserPGRepo {
-	return &UserPGRepo{pg}
+func NewUserPGRepo(pgdb *pg.DB) *UserPGRepo {
+	return &UserPGRepo{pgdb}
 }
 
 func (repo *UserPGRepo) CreateDBUser(ctx context.Context, userEmail string) (string, error) {
@@ -32,27 +32,27 @@ func (repo *UserPGRepo) CreateDBUser(ctx context.Context, userEmail string) (str
 }
 
 func (repo *UserPGRepo) UpdateDBUser(ctx context.Context, user entity.User) (int, error) {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return 0, nil // TODO
 }
 
 func (repo *UserPGRepo) DeleteDBUser(ctx context.Context, id int) error {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return nil // TODO
 }
 
 func (repo *UserPGRepo) GetDBUser(ctx context.Context, id int) (entity.User, error) {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return entity.User{}, nil // TODO
 }
 
 func (repo *UserPGRepo) ListDBUser(ctx context.Context) ([]entity.User, error) {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return []entity.User{}, nil // TODO
 }
 
 func (repo *UserPGRepo) GetDBUserByEmail(ctx context.Context, email string) (entity.User, error) {
-	var emptyUser entity.User = entity.User{}
+	emptyUser := entity.User{}
 
 	row := repo.Pool.QueryRow(ctx, "select id, email from task.users where email = $1;", email)
 

@@ -28,13 +28,12 @@ func NewUserMockRepo(logger *logging.ZeroLogger) (*UserMockRepo, error) {
 }
 
 func (repo *UserMockRepo) CreateDBUser(ctx context.Context, userEmail string) (string, error) {
-
 	sliceOfByteTask, err := json.MarshalIndent(userEmail, "", "  ")
 	if err != nil {
 		return "", errors.Newf("repository UserMockRepo Create marshal error: %v", err)
 	}
 
-	err = os.WriteFile(mockUserDBPath, sliceOfByteTask, 0664)
+	err = os.WriteFile(mockUserDBPath, sliceOfByteTask, 0o600)
 	if err != nil {
 		return "", err
 	}
@@ -43,27 +42,27 @@ func (repo *UserMockRepo) CreateDBUser(ctx context.Context, userEmail string) (s
 }
 
 func (repo *UserMockRepo) UpdateDBUser(ctx context.Context, user entity.User) (int, error) {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return 0, nil // TODO
 }
 
 func (repo *UserMockRepo) DeleteDBUser(ctx context.Context, id int) error {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return nil // TODO
 }
 
 func (repo *UserMockRepo) GetDBUser(ctx context.Context, id int) (entity.User, error) {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return entity.User{}, nil // TODO
 }
 
 func (repo *UserMockRepo) ListDBUser(ctx context.Context) ([]entity.User, error) {
-	//repo.Pool.Exec()
+	// repo.Pool.Exec()
 	return []entity.User{}, nil // TODO
 }
 
 func (repo *UserMockRepo) GetDBUserByEmail(ctx context.Context, email string) (entity.User, error) {
-	var emptyUser entity.User = entity.User{}
+	emptyUser := entity.User{}
 
 	return emptyUser, nil
 }
