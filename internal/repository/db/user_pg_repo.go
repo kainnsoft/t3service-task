@@ -41,9 +41,17 @@ func (repo *UserPGRepo) DeleteDBUser(ctx context.Context, id int) error {
 	return nil // TODO
 }
 
-func (repo *UserPGRepo) GetDBUser(ctx context.Context, id int) (entity.User, error) {
-	// repo.Pool.Exec()
-	return entity.User{}, nil // TODO
+func (repo *UserPGRepo) GetDBUserByID(ctx context.Context, id int) (entity.User, error) {
+	queryStr := "SELECT id, email FROM task.users WHERE id = $1;"
+	row := repo.Pool.QueryRow(ctx, queryStr, id)
+
+	foundUser := entity.User{}
+	err := row.Scan(&foundUser.ID, &foundUser.Email)
+	if err != nil {
+		return foundUser, err
+	}
+
+	return foundUser, nil
 }
 
 func (repo *UserPGRepo) ListDBUser(ctx context.Context) ([]entity.User, error) {
@@ -61,5 +69,6 @@ func (repo *UserPGRepo) GetDBUserByEmail(ctx context.Context, email string) (ent
 	if err != nil {
 		return emptyUser, err
 	}
+
 	return *foundUser, nil
 }

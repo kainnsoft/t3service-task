@@ -44,9 +44,18 @@ func (r *mockTaskDBRepo) UpdateDBTask(ctx context.Context, task *entity.Task) (i
 func (r *mockTaskDBRepo) DeleteDBTask(ctx context.Context, taskId int) error
 func (r *mockTaskDBRepo) GetDBTask(ctx context.Context, taskId int) (entity.Task, error)
 func (r *mockTaskDBRepo) ListDBTask(ctx context.Context) ([]entity.Task, error)
-func (r *mockTaskDBRepo) BeginTransaction(ctx context.Context) (*pgx.Tx, error)
-func (r *mockTaskDBRepo) CommitTransaction(ctx context.Context, txPtr *pgx.Tx) error
-func (r *mockTaskDBRepo) RollbackTransaction(ctx context.Context, txPtr *pgx.Tx)
+
+//func (r *mockTaskDBRepo) BeginTransaction(ctx context.Context) (*pgx.Tx, error)
+//func (r *mockTaskDBRepo) CommitTransaction(ctx context.Context, txPtr *pgx.Tx) error
+//func (r *mockTaskDBRepo) RollbackTransaction(ctx context.Context, txPtr *pgx.Tx)
+
+type mockTaskEventsDBRepo struct {
+	mock.Mock
+}
+
+func (r *mockTaskEventsDBRepo) InsertDBTaskEvents(ctx context.Context, taskID, userID int, taskEventType entity.KafkaTypes) error
+func (r *mockTaskEventsDBRepo) GetTaskEventTypeByName(cctx context.Context, taskEventType entity.KafkaTypes) (int, error)
+func (r *mockTaskEventsDBRepo) GetApproversIDMapMatchingTheListByTaskID(ctx context.Context, taskID int, listApproversID []int) (map[int]struct{}, error)
 
 // tests
 type unitTestSuite struct {
@@ -59,10 +68,11 @@ func TestUnitTestSuite(t *testing.T) {
 
 func (s *unitTestSuite) TestCreateDBTask() {
 	r := new(mockTaskDBRepo)
+	te := new(mockTaskEventsDBRepo)
 
 	r.On("CreateDBTask", Task1).Return(1, nil) // Added
 
-	l := usecase.NewTaskUseCase(r)
+	l := usecase.NewTaskUseCase(r, te)
 
 	strAnswer, err := l.CreateTask(context.Background(), nil, &Task1)
 

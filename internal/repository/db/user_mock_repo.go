@@ -51,7 +51,7 @@ func (repo *UserMockRepo) DeleteDBUser(ctx context.Context, id int) error {
 	return nil // TODO
 }
 
-func (repo *UserMockRepo) GetDBUser(ctx context.Context, id int) (entity.User, error) {
+func (repo *UserMockRepo) GetDBUserByID(ctx context.Context, id int) (entity.User, error) {
 	// repo.Pool.Exec()
 	return entity.User{}, nil // TODO
 }

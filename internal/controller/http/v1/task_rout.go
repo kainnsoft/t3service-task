@@ -155,6 +155,7 @@ func (rout *taskRoutes) Delete() http.HandlerFunc { // TODO
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, err := w.Write([]byte("OK, I'm ready to read and write from task-service"))
+
 		if err != nil {
 			rout.logger.Error("rout.Delete() error: %v", err)
 		}
@@ -210,6 +211,7 @@ func (rout *taskRoutes) Get(taskID string) http.HandlerFunc { // TODO
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, err = w.Write(resp)
+
 		if err != nil {
 			rout.logger.Error("rout.Get() error: %v", err)
 		}
@@ -219,6 +221,7 @@ func (rout *taskRoutes) Get(taskID string) http.HandlerFunc { // TODO
 func (rout *taskRoutes) List(w http.ResponseWriter, r *http.Request) { // TODO
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("OK, I'm ready to read and write from task-service"))
+
 	if err != nil {
 		rout.logger.Error("rout.List() error: %v", err)
 	}
@@ -252,7 +255,6 @@ func (rout *taskRoutes) checkValidation(r *http.Request) (entity.AuthResponse, e
 		err := errors.Wrapf(err, " validation error occures while cookie getting")
 
 		return validationAuthResponse, err
-
 	} else {
 		authRequest.AccessToken = accessToken.Value
 	}

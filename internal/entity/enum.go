@@ -8,10 +8,12 @@ const (
 	Approved
 	Rejected
 	SendMail
+	ToApprove
+	ToReject
 	AboutTaskEvent
 	ToMailService
 )
 
 func (kt KafkaTypes) String() string {
-	return [...]string{"created", "approved", "rejected", "send_mail", "about_task_event", "to_mail_service"}[kt]
+	return [...]string{"created", "approved", "rejected", "send_mail", "to_approve", "to_reject", "about_task_event", "to_mail_service"}[kt]
 }

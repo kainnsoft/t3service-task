@@ -13,13 +13,11 @@ import (
 )
 
 type InUseCase struct {
-	taskUseCase          TaskUseCase
-	taskApproversUseCase TaskApproversUseCase
-	taskEventsUseCase    TaskEventsUseCase
-	userUseCase          UserUseCase
-	txUseCase            TxUseCase
-	kafkaClient          *repo.KafkaProducers
-	log                  *logging.ZeroLogger
+	taskUseCase TaskUseCase
+	userUseCase UserUseCase
+	txUseCase   TxUseCase
+	kafkaClient *repo.KafkaProducers
+	log         *logging.ZeroLogger
 }
 
 func NewInUseCase(ti TaskDBRepoInterface,
@@ -30,19 +28,17 @@ func NewInUseCase(ti TaskDBRepoInterface,
 	kafkaClient *repo.KafkaProducers,
 	log *logging.ZeroLogger) *InUseCase {
 
-	taskUC := NewTaskUseCase(ti)
-	taUC := NewTaskApproversUseCase(ta)
-	teUC := NewTaskEventsUseCase(te)
-	userUC := NewUserUseCase(ui, log)
+	taskUC := NewTaskUseCase(ti, te)
+	userUC := NewUserUseCase(ui, ta, te)
 	txUC := NewTxUseCase(tx)
 
-	return &InUseCase{*taskUC, *taUC, *teUC, *userUC, *txUC, kafkaClient, log}
+	return &InUseCase{*taskUC, *userUC, *txUC, kafkaClient, log}
 }
 
 var _ v1.TaskHandlerInterface = (*InUseCase)(nil)
 
 func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, authorEmail string) (int, error) {
-	var taskID int // taskID is success
+	var taskID int
 
 	receivedTask := entity.Task{}
 
@@ -75,7 +71,8 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 			return taskID, errors.Wrapf(err, "email is incorrect, please, check approver information: %v", v.Email)
 		}
 
-		curApprover, err := inUC.userUseCase.CheckAndReturnUserByEmail(ctx, v.Email)
+		var curApprover entity.User
+		curApprover, err = inUC.userUseCase.CheckAndReturnUserByEmail(ctx, v.Email)
 		if err != nil {
 			return taskID, errors.Wrapf(err, "something went wrong, can't create approver %v as user, please, try again", v.Email)
 		}
@@ -106,55 +103,81 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 		if rberr != nil {
 			inUC.log.Error("in usecase.CreateTaskHandle inUC.txUseCase.CreateTask RollbackTransaction error :%v", rberr)
 		}
+
 		err = fmt.Errorf("in usecase.CreateTaskHandle inUC.taskUseCase.CreateTask error: %v", err)
 
 		return taskID, err
 	}
 
 	// third - write task approvers to db
-	err = inUC.taskApproversUseCase.InsertTaskApprovers(ctx, tx, taskID, receivedTask.Approvers)
+	err = inUC.userUseCase.InsertTaskApprovers(ctx, tx, taskID, receivedTask.Approvers)
 	if err != nil {
 		rberr := inUC.txUseCase.RollbackTransaction(ctx, tx)
 		if rberr != nil {
 			inUC.log.Error("in usecase.CreateTaskHandle inUC.txUseCase.InsertTaskApprovers RollbackTransaction error :%v", rberr)
 		}
+
 		err = fmt.Errorf("in usecase.CreateTaskHandle inUC.taskApproversUseCase.InsertTaskApprovers error: %v", err)
 
 		return taskID, err
 	}
+
 	receivedTask.ID = taskID
 
 	// fourth - write event to db (created)
-	err = inUC.taskEventsUseCase.InsertTaskEvent(ctx, taskID, receivedTask.Author.ID, entity.Created)
+	err = inUC.taskUseCase.InsertTaskEvent(ctx, taskID, receivedTask.Author.ID, entity.Created)
 	if err != nil {
 		rberr := inUC.txUseCase.RollbackTransaction(ctx, tx)
 		if rberr != nil {
-			inUC.log.Error("in usecase.CreateTaskHandle inUC.taskEventsUseCase.InsertTaskEvent RollbackTransaction error :%v", rberr)
+			inUC.log.Error("in usecase.CreateTaskHandle inUC.taskUseCase.InsertTaskEvent RollbackTransaction error :%w", rberr)
 		}
-		err = fmt.Errorf("in usecase.CreateTaskHandle inUC.taskEventsUseCase.InsertTaskEvent error: %v", err)
+		err = fmt.Errorf("in usecase.CreateTaskHandle inUC.taskUseCase.InsertTaskEvent error: %w", err)
 
 		return taskID, err
 	}
 
+	// ------------- kafka (start)
 	// send kafka message to analytic service about task create
-	// последние два параметра - требования бизнес-логики сервиса аналитики - тип события (создание, согласование и т.д.)
-	// и пользователь (если создание, то email автора, если согласование, то email согласующего)
+	// отправляем данные о свершившемся событии - task создан, согласован, обновлён и т.д.,
+	// а также о юзере, который инициировал это событие (либо автор, либо согласующий)
 	err = repo.SendMessagesToKafka(
 		inUC.kafkaClient.KafProducerAboutTaskEvent,
 		&receivedTask,
-		entity.Created,
-		receivedTask.Author.Email,
-		entity.AboutTaskEvent)
+		entity.Created,            // тип события
+		receivedTask.Author.Email, // user email
+		entity.AboutTaskEvent)     // topic
 
 	if err != nil {
 		rberr := inUC.txUseCase.RollbackTransaction(ctx, tx)
 		if rberr != nil {
-			inUC.log.Error("in usecase.CreateTaskHandle repo.SendMessagesToKafka RollbackTransaction error :%v", rberr)
+			inUC.log.Error("in usecase.CreateTaskHandle repo.SendMessagesToKafka (analityc) RollbackTransaction error :%v", rberr)
 		}
-		err = fmt.Errorf("usecase.CreateHandle repo.SendMessagesToKafka error: %v", err)
+		err = fmt.Errorf("usecase.CreateHandle repo.SendMessagesToKafka (analityc) error: %v", err)
 
 		return taskID, err
 	}
+
+	// send kafka message to mail service about task create
+	// отправляем данные о том, что нужно сделать с task-ом - согласовать, зареджектить и т.д.,
+	// а также о юзере, который должен это событие произвести
+	err = repo.SendMessagesToKafka(
+		inUC.kafkaClient.KafProducerToMailService,
+		&receivedTask,
+		entity.ToApprove,
+		receivedTask.Approvers[0].Email,
+		entity.ToMailService)
+
+	if err != nil {
+		rberr := inUC.txUseCase.RollbackTransaction(ctx, tx)
+		if rberr != nil {
+			inUC.log.Error("in usecase.CreateTaskHandle repo.SendMessagesToKafka (mail) RollbackTransaction error :%v", rberr)
+		}
+		err = fmt.Errorf("usecase.CreateHandle repo.SendMessagesToKafka (mail) error: %v", err)
+
+		return taskID, err
+	}
+
+	// ------------- kafka (end)
 
 	// commit transaction
 	err = inUC.txUseCase.CommitTransaction(ctx, tx)
@@ -169,34 +192,22 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 }
 
 func (inUC *InUseCase) UpdateTaskHandle(ctx context.Context, task *entity.Task) (int, error) {
-	// resp, err := taskUC.dbRepo.UpdateDBTask(context.Background(), task)
-	// if err != nil {
-	// 	return 0, err
-	// }
+
 	return 0, nil
 } // TODO
 
 func (inUC *InUseCase) DeleteTaskHandle(ctx context.Context, taskID int) error {
-	// err := taskUC.dbRepo.DeleteDBTask(context.Background(), taskId)
-	// if err != nil {
-	// 	return err
-	// }
+
 	return nil
 } // TODO
 
 func (inUC *InUseCase) GetTaskHandle(ctx context.Context, taskID int) (entity.Task, error) { // TODO
-	// resp, err := taskUC.dbRepo.GetDBTask(context.Background(), taskId)
-	// if err != nil {
-	// 	return entity.Task{}, err
-	// }
+
 	return entity.Task{}, nil
 } // TODO
 
 func (inUC *InUseCase) ListTaskHandle(ctx context.Context) ([]entity.Task, error) {
 	emptytaskList := make([]entity.Task, 0)
-	// taskList, err := taskUC.dbRepo.ListDBTask(context.Background())
-	// if err != nil {
-	// 	return emptytaskList, err
-	// }
+
 	return emptytaskList, nil
 } // TODO (with filtr)

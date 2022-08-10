@@ -25,17 +25,19 @@ type TxDBRepoInterface interface {
 type TaskApproversDBRepoInterface interface {
 	InsertDBTaskApprovers(context.Context, *pgx.Tx, int, []entity.User) error // batch
 	GetTaskApproversByTaskID(context.Context, int) ([]entity.User, error)
+	GetTaskApproversIDByTaskID(context.Context, int) ([]int, error)
 }
 
 type TaskEventsDBRepoInterface interface {
 	InsertDBTaskEvents(context.Context, int, int, entity.KafkaTypes) error
 	GetTaskEventTypeByName(context.Context, entity.KafkaTypes) (int, error)
+	GetApproversIDMapMatchingTheListByTaskID(context.Context, int, []int) (map[int]struct{}, error)
 }
 type UserDBRepoInterface interface {
 	CreateDBUser(context.Context, string) (string, error)
 	UpdateDBUser(context.Context, entity.User) (int, error)
 	DeleteDBUser(context.Context, int) error
-	GetDBUser(context.Context, int) (entity.User, error)
+	GetDBUserByID(context.Context, int) (entity.User, error)
 	GetDBUserByEmail(context.Context, string) (entity.User, error)
 	ListDBUser(context.Context) ([]entity.User, error) // need add filter
 }

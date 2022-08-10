@@ -11,8 +11,8 @@ import (
 )
 
 type KafkaProducers struct {
-	KafProducerAboutTaskEvent *kafkaPkg.Client
-	KafProducerToMailService  *kafkaPkg.Client
+	KafProducerAboutTaskEvent *kafkaPkg.Client // for analityc topic
+	KafProducerToMailService  *kafkaPkg.Client // for mail topic
 }
 
 func SendMessagesToKafka(c *kafkaPkg.Client,

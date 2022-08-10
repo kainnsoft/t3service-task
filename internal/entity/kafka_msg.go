@@ -8,9 +8,9 @@ import (
 type KafkaMsgAboutTaskEvent struct {
 	TaskID          int32
 	ApproversNumber int32
-	Type            KafkaTypes
-	User            string
-	Time            time.Time
+	User            string     // требования бизнес-логики сервиса аналитики - пользователь (если создание, то email автора, если согласование, то email согласующего)
+	Type            KafkaTypes // требования бизнес-логики сервиса аналитики - тип события (создание, согласование и т.д.)
+	Time            time.Time  // требования бизнес-логики сервиса аналитики - т.к. время события (транзакции) и стандартное время msg в кафке может различаться
 }
 
 func NewKafkaMsgAboutTaskEvent(task *Task, taskType KafkaTypes, taskUserEmail string) *KafkaMsgAboutTaskEvent {
@@ -30,9 +30,9 @@ type KafkaMsgToMailService struct {
 	Description string     `json:"description"`
 	Body        string     `json:"body"`
 	Addressee   string     `json:"addressee"`
-	MailType    KafkaTypes `json:"mail_type"`
 	ApproveLink string     `json:"approve_link"`
 	RejectLink  string     `json:"reject_link"`
+	MailType    KafkaTypes `json:"mail_type"`
 }
 
 func NewKafkaMsgToMailService(task *Task, taskType KafkaTypes, userEmail string) *KafkaMsgToMailService {
@@ -41,7 +41,7 @@ func NewKafkaMsgToMailService(task *Task, taskType KafkaTypes, userEmail string)
 		Description: task.Descr,
 		Body:        task.Body,
 		Addressee:   userEmail,
-		MailType:    taskType,
+		MailType:    taskType, // либо Approved отсылки очередному или в финале, либо Rejected для оповещения всех
 		ApproveLink: fmt.Sprintf("/task/approve/%s", userEmail),
 		RejectLink:  fmt.Sprintf("/task/reject/%s", userEmail),
 	}

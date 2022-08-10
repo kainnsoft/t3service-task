@@ -38,7 +38,29 @@ func (repo *TaskEventsPGRepo) InsertDBTaskEvents(ctx context.Context, taskID, us
 	if err != nil {
 		return errors.Wrapf(err, "repository (repo *TaskEventsPGRepo) InsertDBTaskEvents error")
 	}
+
 	return nil
+}
+
+func (repo *TaskEventsPGRepo) GetApproversIDMapMatchingTheListByTaskID(ctx context.Context, taskID int, listApproversID []int) (map[int]struct{}, error) {
+	eventApproversIDMap := make(map[int]struct{})
+	queryStr := "select id, user_id from task_events where task_id = ANY($1::int[]);"
+	// param := "{" + strings.Join(userIDSlice, ",") + "}"
+	rows, err := repo.Pool.Query(ctx, queryStr, listApproversID)
+	if err == pgx.ErrNoRows {
+		return nil, err
+	} else if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var curApproverID int
+		rows.Scan(&curApproverID)
+		eventApproversIDMap[curApproverID] = struct{}{}
+	}
+
+	return eventApproversIDMap, nil
 }
 
 func (repo *TaskEventsPGRepo) GetTaskEventTypeByName(ctx context.Context, taskEventType entity.KafkaTypes) (int, error) {
@@ -52,5 +74,6 @@ func (repo *TaskEventsPGRepo) GetTaskEventTypeByName(ctx context.Context, taskEv
 	} else if err != nil {
 		return taskTypeID, err
 	}
+
 	return taskTypeID, nil
 }
