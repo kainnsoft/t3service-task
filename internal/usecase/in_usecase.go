@@ -28,7 +28,7 @@ func NewInUseCase(ti TaskDBRepoInterface,
 	kafkaClient *repo.KafkaProducers,
 	log *logging.ZeroLogger) *InUseCase {
 
-	taskUC := NewTaskUseCase(ti, te)
+	taskUC := NewTaskUseCase(ti, ui, ta, te, log)
 	userUC := NewUserUseCase(ui, ta, te)
 	txUC := NewTxUseCase(tx)
 
@@ -152,7 +152,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 		if rberr != nil {
 			inUC.log.Error("in usecase.CreateTaskHandle repo.SendMessagesToKafka (analityc) RollbackTransaction error :%v", rberr)
 		}
-		err = fmt.Errorf("usecase.CreateHandle repo.SendMessagesToKafka (analityc) error: %v", err)
+		err = fmt.Errorf("in_usecase.CreateTaskHandle repo.SendMessagesToKafka (analityc) error: %v", err)
 
 		return taskID, err
 	}
@@ -172,7 +172,7 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 		if rberr != nil {
 			inUC.log.Error("in usecase.CreateTaskHandle repo.SendMessagesToKafka (mail) RollbackTransaction error :%v", rberr)
 		}
-		err = fmt.Errorf("usecase.CreateHandle repo.SendMessagesToKafka (mail) error: %v", err)
+		err = fmt.Errorf("in_usecase.CreateTaskHandle repo.SendMessagesToKafka (mail) error: %v", err)
 
 		return taskID, err
 	}
@@ -192,22 +192,31 @@ func (inUC *InUseCase) CreateTaskHandle(ctx context.Context, data []byte, author
 }
 
 func (inUC *InUseCase) UpdateTaskHandle(ctx context.Context, task *entity.Task) (int, error) {
-
 	return 0, nil
 } // TODO
 
 func (inUC *InUseCase) DeleteTaskHandle(ctx context.Context, taskID int) error {
-
 	return nil
 } // TODO
 
-func (inUC *InUseCase) GetTaskHandle(ctx context.Context, taskID int) (entity.Task, error) { // TODO
+func (inUC *InUseCase) GetTaskHandle(ctx context.Context, taskID int) (entity.Task, error) {
+	task, err := inUC.taskUseCase.GetOneTask(ctx, taskID)
+	if err != nil {
+		inUC.log.Error("in_usecase.GetTaskHandle inUC.taskUseCase.GetOneTask error :%w", err)
 
-	return entity.Task{}, nil
-} // TODO
+		return entity.Task{}, err
+	}
 
-func (inUC *InUseCase) ListTaskHandle(ctx context.Context) ([]entity.Task, error) {
-	emptytaskList := make([]entity.Task, 0)
+	return task, nil
+}
 
-	return emptytaskList, nil
-} // TODO (with filtr)
+func (inUC *InUseCase) GetListTaskHandle(ctx context.Context) ([]entity.Task, error) {
+	taskList, err := inUC.taskUseCase.GetTaskList(ctx)
+	if err != nil {
+		inUC.log.Error("in_usecase.ListTaskHandle inUC.taskUseCase.GetListTaskHandle error :%w", err)
+
+		return nil, err
+	}
+
+	return taskList, nil
+}

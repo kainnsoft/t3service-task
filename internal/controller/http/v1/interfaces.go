@@ -10,7 +10,7 @@ import (
 type TaskHandlerInterface interface {
 	CreateTaskHandle(context.Context, []byte, string) (int, error)
 	UpdateTaskHandle(context.Context, *entity.Task) (int, error)
-	DeleteTaskHandle(context.Context, int) error             // int - Task.id
-	GetTaskHandle(context.Context, int) (entity.Task, error) // int - Task.id
-	ListTaskHandle(context.Context) ([]entity.Task, error)   // need add filter
+	DeleteTaskHandle(context.Context, int) error              // int - Task.id
+	GetTaskHandle(context.Context, int) (entity.Task, error)  // int - Task.id
+	GetListTaskHandle(context.Context) ([]entity.Task, error) // need add filter
 }

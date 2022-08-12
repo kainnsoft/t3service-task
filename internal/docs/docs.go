@@ -39,6 +39,55 @@ const docTemplate = `{
             }
         },
         "/task": {
+            "get": {
+                "description": "Get one tasks",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "get one task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "string",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Task"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "add (create) new task",
                 "consumes": [
@@ -51,7 +100,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "New Task",
-                        "name": "article",
+                        "name": "task",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -75,7 +124,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/errors.customTaskError"
+                            "type": "string"
                         }
                     },
                     "404": {
@@ -84,10 +133,51 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "405": {
-                        "description": "Method Not Allowed",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/errors.customTaskError"
+                            "type": "string"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks": {
+            "get": {
+                "description": "Get list of tasks",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "list of task",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/entity.Task"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "500": {
@@ -143,17 +233,6 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
-        },
-        "errors.customTaskError": {
-            "type": "object",
-            "properties": {
-                "stackTrace": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                }
-            }
         }
     }
 }`
@@ -161,7 +240,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             ":3000",
+	Host:             "localhost:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Team3.Task.service API",

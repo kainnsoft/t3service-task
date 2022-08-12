@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -29,12 +28,8 @@ func NewTaskRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.GC
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	mux.Handle("/ping", rout.Ping()) // GET
+	mux.Handle("/tasks", rout.List())
 	mux.Handle("/task", rout.Task())
-	// mux.Handle("/create", rout.Create())            task        POST
-	// mux.Handle("/update", rout.Update())            task/{id}   PUT(id)
-	// mux.Handle("/delete", rout.Delete())            task/{id}   DELETE(id)
-	// mux.Handle("/get", rout.Get())                  task/{id}   GET(id)
-	// mux.Handle("/list", rout.List())                task        GET
 
 	mux.Handle("/approvetask", rout.ApproveTask()) // PATCH(id)
 	mux.Handle("/rejecttask", rout.RejectTask())   // PATCH(id)
@@ -65,7 +60,7 @@ func (rout *taskRoutes) Task() http.HandlerFunc {
 
 			switch r.Method {
 			case http.MethodGet:
-				rout.Get(curTaskID)
+				rout.GetOne(w, r, curTaskID)
 			case http.MethodPut:
 				rout.Update()
 			case http.MethodDelete:
@@ -75,8 +70,6 @@ func (rout *taskRoutes) Task() http.HandlerFunc {
 			}
 		case false:
 			switch r.Method {
-			case http.MethodGet:
-				rout.List(w, r)
 			case http.MethodPost:
 				rout.Create(w, r)
 			default:
@@ -91,24 +84,22 @@ func (rout *taskRoutes) Task() http.HandlerFunc {
 // @Description add (create) new task
 // @Accept json
 // @Produce json
-// @Param article body entity.Task true "New Task"
+// @Param task body entity.Task true "New Task"
 // @Success 201 {string} entity.Task.Id
 // @Failure 400 {string} string
-// @Failure 401 {object} errors.customTaskError
+// @Failure 401 {string} string
 // @Failure 404 {string} string
-// @Failure 405 {object} errors.customTaskError
 // @Failure 500 {string} string
 // @Failure 503 {string} string
 // @Router /task [post]
 func (rout taskRoutes) Create(w http.ResponseWriter, r *http.Request) {
 	// token validation from grpc auth.service // TODO test
-	// validationAuthResponse, err := rout.checkValidation(r)
-	// if err != nil {
-	// 	rout.logger.Error("%v", err)
-	// 	http.Error(w, "Validation error occures. Please try log in again.", http.StatusUnauthorized)
-	// 	return
-	// }
-	validationAuthResponse := entity.AuthResponse{Username: "author@gmail.com"}
+	validationAuthResponse, err := rout.checkValidation(r)
+	if err != nil {
+		rout.logger.Error("%v", err)
+		http.Error(w, "Validation error occures. Please try log in again.", http.StatusUnauthorized)
+		return
+	}
 
 	// If we're right here, validation has successed and we got user email
 	body, err := io.ReadAll(r.Body)
@@ -162,47 +153,96 @@ func (rout *taskRoutes) Delete() http.HandlerFunc { // TODO
 	}
 }
 
-func (rout *taskRoutes) Get(taskID string) http.HandlerFunc { // TODO
+// task godoc
+// @Summary get one task
+// @Description Get one tasks
+// @Produce json
+// @Param id query string true "Task ID" Format(string)
+// @Success 200 {object} entity.Task
+// @Failure 400 {string} string
+// @Failure 404 {string} string
+// @Failure 500 {string} string
+// @Failure 503 {string} string
+// @Router /task [get]
+func (rout *taskRoutes) GetOne(w http.ResponseWriter, r *http.Request, taskID string) {
+	intTaskID, err := strconv.Atoi(taskID)
+	if err != nil {
+		rout.logger.Error("rout.GetOne not valid id error: %v, id = %s", err, taskID)
+		http.Error(w, "Not valid task id. Please try id parametr again.", http.StatusBadRequest)
+
+		return
+	}
+
+	task, err := rout.taskHandler.GetTaskHandle(r.Context(), intTaskID)
+
+	if err != nil {
+		rout.logger.Error("rout.GetOne rout.taskHandler.GetTaskHandle error: %v; intTaskId = %d", err, intTaskID)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
+	}
+
+	// --------------------------------------------
+	// если запрашивающи информацию не автор задачи, то отбой (пока нет auth сервиса, отключаем)
+	// token validation from grpc auth.service
+	// validationAuthResponse, err := rout.checkValidation(r)
+	// if err != nil {
+	// 	rout.logger.Error("rout.GetOne validation error: %v", err)
+	// 	http.Error(w, "Validation error occures. Please try log in again.", http.StatusUnauthorized)
+
+	// 	return
+	// }
+
+	// if validationAuthResponse.Username != task.Author.Email {
+	// 	rout.logger.Error("rout.GetOne requesting information is not task author: %v; intTaskId = %d; author = %s",
+	// 		validationAuthResponse.Username, intTaskID, task.Author.Email)
+	// 	http.Error(w, "Only author can get task information", http.StatusNotAcceptable)
+
+	// 	return
+	// }
+	// --------------------------------------------
+
+	resp, err := json.MarshalIndent(task, "", "  ")
+
+	if err != nil {
+		rout.logger.Error("rout.GetOne json.Marshal error: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(resp)
+
+	if err != nil {
+		rout.logger.Error("rout.GetOne w.Write(resp) error: %v", err)
+	}
+}
+
+// List godoc
+// @Summary list of task
+// @Description Get list of tasks
+// @Produce json
+// @Success 200 {array} []entity.Task
+// @Failure 400 {string} string
+// @Failure 404 {string} string
+// @Failure 500 {string} string
+// @Failure 503 {string} string
+// @Router /tasks [get]
+func (rout *taskRoutes) List() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// token validation from grpc auth.service
-		validationAuthResponse, err := rout.checkValidation(r)
+		taskList, err := rout.taskHandler.GetListTaskHandle(r.Context())
 		if err != nil {
-			rout.logger.Error("rout.Get() validation error: %v", err)
-			http.Error(w, "Validation error occures. Please try log in again.", http.StatusUnauthorized)
-
-			return
-		}
-
-		intTaskID, err := strconv.Atoi(taskID)
-
-		if err != nil {
-			rout.logger.Error("rout.Get() not valid id error: %v, id = %s", err, taskID)
-			http.Error(w, "Not valid task id. Please try id parametr again.", http.StatusBadRequest)
-
-			return
-		}
-
-		task, err := rout.taskHandler.GetTaskHandle(context.Background(), intTaskID)
-
-		if err != nil {
-			rout.logger.Error("rout.Get() rout.taskHandler.GetTaskHandle error: %v; intTaskId = %d", err, intTaskID)
+			rout.logger.Error("rout.List() rout.taskHandler.ListTaskHandle error: %v", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
 			return
 		}
-		// если запрашивающи информацию не автор задачи, то отбой
-		if validationAuthResponse.Username != task.Author.Email {
-			rout.logger.Error("rout.Get() requesting information is not task author: %v; intTaskId = %d; author = %s",
-				validationAuthResponse.Username, intTaskID, task.Author.Email)
-			http.Error(w, "Only author can get task information", http.StatusNotAcceptable)
 
-			return
-		}
-
-		resp, err := json.MarshalIndent(task, "", "  ")
-
+		resp, err := json.MarshalIndent(taskList, " ", "")
 		if err != nil {
-			rout.logger.Error("rout.Get() json.Marshal error: %v", err)
+			rout.logger.Error("rout.List() json.Marshal error: %v", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
 			return
@@ -210,20 +250,11 @@ func (rout *taskRoutes) Get(taskID string) http.HandlerFunc { // TODO
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+
 		_, err = w.Write(resp)
-
 		if err != nil {
-			rout.logger.Error("rout.Get() error: %v", err)
+			rout.logger.Error("rout.List() w.Write(resp) error: %v", err)
 		}
-	}
-}
-
-func (rout *taskRoutes) List(w http.ResponseWriter, r *http.Request) { // TODO
-	w.WriteHeader(http.StatusOK)
-	_, err := w.Write([]byte("OK, I'm ready to read and write from task-service"))
-
-	if err != nil {
-		rout.logger.Error("rout.List() error: %v", err)
 	}
 }
 
@@ -248,6 +279,9 @@ func (rout *taskRoutes) RejectTask() http.HandlerFunc { // TODO
 }
 
 func (rout *taskRoutes) checkValidation(r *http.Request) (entity.AuthResponse, error) {
+	// пока не заработает auth service TODO !!!!!
+	return entity.AuthResponse{Username: "author@gmail.com"}, nil
+
 	validationAuthResponse := entity.AuthResponse{}
 	authRequest := entity.AuthRequest{}
 	accessToken, err := r.Cookie("access")

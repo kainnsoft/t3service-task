@@ -13,7 +13,7 @@ type TaskDBRepoInterface interface {
 	UpdateDBTask(context.Context, *entity.Task) (int, error)
 	DeleteDBTask(context.Context, int) error             // int - Task.id
 	GetDBTask(context.Context, int) (entity.Task, error) // int - Task.id
-	ListDBTask(context.Context) ([]entity.Task, error)   // need add filter
+	GetListDBTask(context.Context) ([]entity.Task, error)
 }
 
 type TxDBRepoInterface interface {

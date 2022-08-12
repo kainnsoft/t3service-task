@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	cfg "team3-task/config"
 	"team3-task/internal/entity"
 	kafkaPkg "team3-task/pkg/kafka"
 
@@ -35,7 +36,14 @@ func SendMessagesToKafka(c *kafkaPkg.Client,
 			return fmt.Errorf("repository.SendMessagesToKafka json.Marshal error: %v", err)
 		}
 	case entity.ToMailService:
-		msgNew := entity.NewKafkaMsgToMailService(task, taskType, taskUser)
+		httpAddr, err := cfg.GetHTTPAddr()
+		if err != nil {
+			return fmt.Errorf("repository.SendMessagesToKafka cfg.GetHTTPAddr() error: %v", err)
+		}
+
+		link := "http://" + httpAddr
+
+		msgNew := entity.NewKafkaMsgToMailService(task, taskType, taskUser, link)
 		msgValue, err = json.MarshalIndent(msgNew, "", " ")
 
 		if err != nil {

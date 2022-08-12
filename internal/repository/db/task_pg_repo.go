@@ -54,17 +54,38 @@ func (repo *TaskPGRepo) GetDBTask(ctx context.Context, id int) (entity.Task, err
 	row := repo.Pool.QueryRow(ctx, queryStr, id)
 
 	task := entity.Task{}
-	err := row.Scan(&task.ID, &task.Author.ID)
+	err := row.Scan(&task.ID, &task.Author.ID, &task.Descr, &task.Body, &task.Finished)
 	if err == pgx.ErrNoRows {
 		return task, err
 	} else if err != nil {
 		return task, err
 	}
 
-	return entity.Task{}, nil
+	return task, nil
 }
 
-func (repo *TaskPGRepo) ListDBTask(ctx context.Context) ([]entity.Task, error) {
-	// repo.Pool.Exec()
-	return []entity.Task{}, nil // TODO
+func (repo *TaskPGRepo) GetListDBTask(ctx context.Context) ([]entity.Task, error) {
+	const queryStr = "select id, author_id, descr, body, finished from task.tasks"
+	rows, err := repo.Pool.Query(ctx, queryStr)
+
+	if err == pgx.ErrNoRows {
+		return nil, err
+	} else if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	taskList := make([]entity.Task, 0)
+	for rows.Next() {
+		task := entity.Task{}
+		err := rows.Scan(&task.ID, &task.Author.ID, &task.Descr, &task.Body, &task.Finished)
+		if err != nil {
+			return nil, err
+		}
+
+		taskList = append(taskList, task)
+	}
+
+	return taskList, nil
 }

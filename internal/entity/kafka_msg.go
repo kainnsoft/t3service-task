@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -35,15 +36,15 @@ type KafkaMsgToMailService struct {
 	MailType    KafkaTypes `json:"mail_type"`
 }
 
-func NewKafkaMsgToMailService(task *Task, taskType KafkaTypes, userEmail string) *KafkaMsgToMailService {
+func NewKafkaMsgToMailService(task *Task, taskType KafkaTypes, userEmail, link string) *KafkaMsgToMailService {
 	kafkaMsg := KafkaMsgToMailService{
 		TaskID:      int32(task.ID),
 		Description: task.Descr,
 		Body:        task.Body,
 		Addressee:   userEmail,
 		MailType:    taskType, // либо Approved отсылки очередному или в финале, либо Rejected для оповещения всех
-		ApproveLink: fmt.Sprintf("/task/approve/%s", userEmail),
-		RejectLink:  fmt.Sprintf("/task/reject/%s", userEmail),
+		ApproveLink: fmt.Sprintf("%s/task/approve/%s/%s", link, userEmail, strconv.Itoa(task.ID)),
+		RejectLink:  fmt.Sprintf("%s/task/reject/%s/%s", link, userEmail, strconv.Itoa(task.ID)),
 	}
 
 	return &kafkaMsg

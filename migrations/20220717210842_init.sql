@@ -11,6 +11,8 @@
     INSERT INTO task.task_event_types (task_type) VALUES ('approved');
     INSERT INTO task.task_event_types (task_type) VALUES ('rejected');
     INSERT INTO task.task_event_types (task_type) VALUES ('send_mail');
+	INSERT INTO task.task_event_types (task_type) VALUES ('to_approve');
+	INSERT INTO task.task_event_types (task_type) VALUES ('to_reject');
 
 	CREATE TABLE IF NOT EXISTS task.users(
 		id serial PRIMARY KEY,

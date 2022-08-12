@@ -110,10 +110,11 @@ func loggerWriter(path string, forErr string) *os.File {
 			return os.Stdout
 		}
 	}
+
 	return loggerFile
 }
 
-func includePg(cfg *config.Config, log *logging.ZeroLogger) *pg.DB { //log *logging.TaskLogger
+func includePg(cfg *config.Config, log *logging.ZeroLogger) *pg.DB {
 	strurl := fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable&connect_timeout=%d",
 		"postgres",
 		url.QueryEscape(cfg.PG.Username),
@@ -126,6 +127,7 @@ func includePg(cfg *config.Config, log *logging.ZeroLogger) *pg.DB { //log *logg
 	insPgDB, err := pg.NewInsPgDB(strurl, cfg.PG.PoolMax)
 	if err != nil {
 		log.Error("Can't create DB connection: %v", err) // Fatal
+
 		return nil
 	}
 

@@ -59,7 +59,7 @@ func (repo *TaskMockRepo) GetDBTask(ctx context.Context, id int) (entity.Task, e
 	return entity.Task{}, nil // TODO
 }
 
-func (repo *TaskMockRepo) ListDBTask(ctx context.Context) ([]entity.Task, error) {
+func (repo *TaskMockRepo) GetListDBTask(ctx context.Context) ([]entity.Task, error) {
 	// repo.Pool.Exec()
 	return []entity.Task{}, nil // TODO
 }

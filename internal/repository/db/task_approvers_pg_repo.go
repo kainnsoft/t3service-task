@@ -41,7 +41,7 @@ func (repo *TaskApproversPGRepo) InsertDBTaskApprovers(ctx context.Context, txPt
 func (repo *TaskApproversPGRepo) GetTaskApproversByTaskID(ctx context.Context, taskID int) ([]entity.User, error) {
 	userList := make([]entity.User, 0)
 
-	const queryStrID = "select approver_id from task_approvers where task_id=$1;"
+	const queryStrID = "select approver_id from task.task_approvers where task_id=$1;"
 	rows, err := repo.Pool.Query(ctx, queryStrID, taskID)
 	if err == pgx.ErrNoRows {
 		return userList, err
@@ -62,7 +62,7 @@ func (repo *TaskApproversPGRepo) GetTaskApproversByTaskID(ctx context.Context, t
 		userIDSlice = append(userIDSlice, curID)
 	}
 
-	const queryStrUser = "select id, email from users where id = ANY($1::int[]) ORDER BY id ASC;"
+	const queryStrUser = "select id, email from task.users where id = ANY($1::int[]) ORDER BY id ASC;"
 	// param := "{" + strings.Join(userIDSlice, ",") + "}"
 	rowsN, err := repo.Pool.Query(ctx, queryStrUser, userIDSlice)
 	if err == pgx.ErrNoRows {
@@ -72,9 +72,9 @@ func (repo *TaskApproversPGRepo) GetTaskApproversByTaskID(ctx context.Context, t
 	}
 	defer rowsN.Close()
 
-	for rows.Next() {
+	for rowsN.Next() {
 		curUser := entity.User{}
-		err = rows.Scan(&curUser)
+		err = rowsN.Scan(&curUser.ID, &curUser.Email)
 		if err != nil {
 			return userList, err
 		}
@@ -88,7 +88,7 @@ func (repo *TaskApproversPGRepo) GetTaskApproversByTaskID(ctx context.Context, t
 func (repo *TaskApproversPGRepo) GetTaskApproversIDByTaskID(ctx context.Context, taskID int) ([]int, error) {
 	approverIDList := make([]int, 0)
 
-	const queryStrID = "select approver_id from task_approvers where task_id=$1;"
+	const queryStrID = "select approver_id from task.task_approvers where task_id=$1;"
 	rows, err := repo.Pool.Query(ctx, queryStrID, taskID)
 	if err == pgx.ErrNoRows {
 		return approverIDList, err
