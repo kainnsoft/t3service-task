@@ -1,15 +1,15 @@
-package usecase_test
+package usecase
 
 import (
 	"context"
 	"testing"
 
 	"team3-task/internal/entity"
-	"team3-task/internal/usecase"
+	"team3-task/pkg/logging"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -24,6 +24,14 @@ var (
 		Body:      "body",
 		Approvers: []entity.User{Approver1, Approver2, Approver3, Approver4},
 	}
+	Task0 = entity.Task{
+		Finished: false,
+		Author:   Author,
+		Descr:    "descr",
+		Body:     "body",
+	}
+
+	taskID = 1
 )
 
 // mocks
@@ -40,50 +48,34 @@ func (r *mockTaskDBRepo) CreateDBTask(ctx context.Context, txPtr *pgx.Tx, task *
 	return arg0.(int), args.Error(1)
 }
 
-func (r *mockTaskDBRepo) UpdateDBTask(ctx context.Context, task *entity.Task) (int, error)
-func (r *mockTaskDBRepo) DeleteDBTask(ctx context.Context, taskId int) error
-func (r *mockTaskDBRepo) GetDBTask(ctx context.Context, taskId int) (entity.Task, error)
-func (r *mockTaskDBRepo) GetListDBTask(ctx context.Context) ([]entity.Task, error)
-
-type mockTaskApproversDBRepo struct {
-	mock.Mock
+func (r *mockTaskDBRepo) UpdateDBTask(ctx context.Context, task *entity.Task) (int, error) {
+	return 0, nil
 }
-
-func (r *mockTaskApproversDBRepo) InsertDBTaskApprovers(context.Context, *pgx.Tx, int, []entity.User) error
-func (r *mockTaskApproversDBRepo) GetTaskApproversByTaskID(context.Context, int) ([]entity.User, error)
-func (r *mockTaskApproversDBRepo) GetTaskApproversIDByTaskID(context.Context, int) ([]int, error)
-
-type mockTaskEventsDBRepo struct {
-	mock.Mock
+func (r *mockTaskDBRepo) DeleteDBTask(ctx context.Context, taskId int) error { return nil }
+func (r *mockTaskDBRepo) GetDBTask(ctx context.Context, taskId int) (entity.Task, error) {
+	return entity.Task{}, nil
 }
-
-func (r *mockTaskEventsDBRepo) InsertDBTaskEvents(ctx context.Context, taskID, userID int, taskEventType entity.KafkaTypes) error
-func (r *mockTaskEventsDBRepo) GetTaskEventTypeByName(cctx context.Context, taskEventType entity.KafkaTypes) (int, error)
-func (r *mockTaskEventsDBRepo) GetApproversIDMapMatchingTheListByTaskID(ctx context.Context, taskID int, listApproversID []int) (map[int]struct{}, error)
+func (r *mockTaskDBRepo) GetListDBTask(ctx context.Context) ([]entity.Task, error) {
+	return nil, nil
+}
 
 // tests
-type unitTestSuite struct {
-	suite.Suite
-}
+func TestGetOneTask(t *testing.T) {
+	req := require.New(t)
 
-func TestUnitTestSuite(t *testing.T) {
-	suite.Run(t, &unitTestSuite{})
-}
-
-func (s *unitTestSuite) TestCreateDBTask() {
 	r := new(mockTaskDBRepo)
-	ta := new(mockTaskApproversDBRepo)
-	te := new(mockTaskEventsDBRepo)
+	tu := new(mockUserDBRepo)
+	ta := new(mockApproversDBRepo)
+	te := new(mockEventsDBRepo)
+	log := logging.New("")
 
-	r.On("CreateDBTask", Task1).Return(1, nil) // Added
+	r.On("GetDBTask", taskID).Return(Task1, nil)
 
-	l := usecase.NewTaskUseCase(r, nil, ta, te, nil)
+	l := NewTaskUseCase(r, tu, ta, te, log)
 
-	strAnswer, err := l.CreateTask(context.Background(), nil, &Task1)
+	t.Run("GetOneTask test", func(t *testing.T) {
+		task0, _ := l.GetOneTask(context.Background(), taskID)
 
-	s.Nil(err, "error must be nil")
-	//s.NotNil(strAnswer, "user must not be empty")
-	s.Equal(strAnswer, 1, "created")
-
-	r.AssertExpectations(s.T())
+		req.NotNil(task0, "task must not be nil")
+	})
 }

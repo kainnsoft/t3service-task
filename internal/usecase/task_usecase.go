@@ -23,7 +23,8 @@ func NewTaskUseCase(r TaskDBRepoInterface,
 	te TaskEventsDBRepoInterface,
 	log *logging.ZeroLogger) *TaskUseCase {
 
-	return &TaskUseCase{r, usRepo, ta, te, log}
+	carTaskUseCase := TaskUseCase{r, usRepo, ta, te, log}
+	return &carTaskUseCase
 }
 
 func (taskUC *TaskUseCase) CreateTask(ctx context.Context, txPtr *pgx.Tx, task *entity.Task) (int, error) {

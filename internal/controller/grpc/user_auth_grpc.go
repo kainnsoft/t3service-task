@@ -6,19 +6,17 @@ import (
 	"team3-task/internal/entity"
 	"team3-task/internal/errors"
 	"team3-task/internal/utils"
-	"team3-task/pkg/logging"
 
 	"google.golang.org/grpc"
 )
 
 type GClient struct {
 	client gp.AuthApiClient
-	log    *logging.ZeroLogger
 }
 
-func NewGrpcClient(conn *grpc.ClientConn, log *logging.ZeroLogger) *GClient {
+func NewGrpcClient(conn *grpc.ClientConn) *GClient {
 	client := gp.NewAuthApiClient(conn)
-	grpcClient := GClient{client: client, log: log}
+	grpcClient := GClient{client: client}
 
 	return &grpcClient
 }

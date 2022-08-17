@@ -59,7 +59,6 @@ func (userUC *UserUseCase) GetUserByEmail(ctx context.Context, email string) (en
 	emptyUser := entity.User{}
 	resp, err := userUC.userDBRepo.GetDBUserByEmail(ctx, email)
 	if err != nil {
-
 		return emptyUser, err
 	}
 
@@ -70,7 +69,6 @@ func (userUC *UserUseCase) InsertTaskApprovers(ctx context.Context, txp *pgx.Tx,
 	err := userUC.taDBRepo.InsertDBTaskApprovers(ctx, txp, taskId, approverList)
 	if err != nil {
 		err = fmt.Errorf("usecase.InsertTaskApprovers userUC.taDBRepo.InsertDBTaskApprovers error: %v", err)
-
 		return err
 	}
 

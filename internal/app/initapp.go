@@ -61,7 +61,7 @@ func Run(cfg *config.Config) {
 		log.Error("Can't create GRPC connection: %v", err) // Fatal
 	} else {
 		defer conn.Close()
-		grpcClient = gp.NewGrpcClient(conn, log)
+		grpcClient = gp.NewGrpcClient(conn)
 	}
 
 	// Use case:
