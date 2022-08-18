@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	gp "team3-task/api/grpc/gen/proto"
+	app_interface "team3-task/internal/app/interface"
 	"team3-task/internal/entity"
 	"team3-task/internal/errors"
 	"team3-task/internal/utils"
@@ -13,6 +14,8 @@ import (
 type GClient struct {
 	client gp.AuthApiClient
 }
+
+var _ app_interface.AuthAccessChecker = (*GClient)(nil)
 
 func NewGrpcClient(conn *grpc.ClientConn) *GClient {
 	client := gp.NewAuthApiClient(conn)

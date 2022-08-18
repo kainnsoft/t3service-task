@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	gp "team3-task/internal/controller/grpc"
+	app_interface "team3-task/internal/app/interface"
 	_ "team3-task/internal/docs"
 	"team3-task/internal/entity"
 	"team3-task/internal/errors"
@@ -18,10 +18,10 @@ import (
 type taskRoutes struct {
 	logger      *logging.ZeroLogger
 	taskHandler TaskHandlerInterface
-	grpcClient  *gp.GClient
+	grpcClient  app_interface.AuthAccessChecker
 }
 
-func NewTaskRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient *gp.GClient, log *logging.ZeroLogger) {
+func NewTaskRouter(mux *http.ServeMux, t TaskHandlerInterface, grpcClient app_interface.AuthAccessChecker, log *logging.ZeroLogger) {
 	rout := taskRoutes{log, t, grpcClient}
 
 	// swagger
@@ -283,6 +283,7 @@ func (rout *taskRoutes) checkValidation(r *http.Request) (entity.AuthResponse, e
 	return entity.AuthResponse{Username: "author@gmail.com"}, nil
 
 	validationAuthResponse := entity.AuthResponse{}
+
 	authRequest := entity.AuthRequest{}
 	accessToken, err := r.Cookie("access")
 	if err != nil {

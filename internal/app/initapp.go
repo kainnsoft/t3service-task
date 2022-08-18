@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	config "team3-task/config"
+	app_interface "team3-task/internal/app/interface"
 	gp "team3-task/internal/controller/grpc"
 	v1 "team3-task/internal/controller/http/v1"
 	repository "team3-task/internal/repository/db"
@@ -55,7 +56,8 @@ func Run(cfg *config.Config) {
 	}
 
 	// grpc
-	var grpcClient *gp.GClient = &gp.GClient{}
+	//var grpcClient *gp.GClient = &gp.GClient{}
+	var grpcClient app_interface.AuthAccessChecker
 	conn, err := grpc.Dial(cfg.GRPC.GRPCAddress, grpc.WithInsecure())
 	if err != nil {
 		log.Error("Can't create GRPC connection: %v", err) // Fatal
