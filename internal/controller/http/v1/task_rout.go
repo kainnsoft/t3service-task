@@ -280,7 +280,7 @@ func (rout *taskRoutes) RejectTask() http.HandlerFunc { // TODO
 
 func (rout *taskRoutes) checkValidation(r *http.Request) (entity.AuthResponse, error) {
 	// пока не заработает auth service TODO !!!!!
-	return entity.AuthResponse{Username: "author@gmail.com"}, nil
+	//return entity.AuthResponse{Username: "author@gmail.com"}, nil
 
 	validationAuthResponse := entity.AuthResponse{}
 
