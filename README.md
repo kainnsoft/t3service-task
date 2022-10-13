@@ -1,4 +1,6 @@
 ### Project structure
+Диаграмма: /High-level design.pdf
+
 based on pattern: <br>
 https://github.com/evrone/go-clean-template <br>
 https://evrone.ru/Go-clean-template <br>
