@@ -1,6 +1,5 @@
 ### Project structure
 Диаграмма проекта: https://github.com/kainnsoft/t3service-task/blob/master/High-level%20design.pdf
-/High-level design.pdf
 
 
 `/cmd/app/main.go`
