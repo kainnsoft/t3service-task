@@ -76,22 +76,3 @@ Router<br>
 		}
 	]
 }`
-
-### Update (PUT)  // id in path
-`{
-	"descr": "descr",
-	"body": "body",
-	"approvers": [{
-			"email": "appr1@mail.ru"
-		},
-		{
-			"email": "appr2@mail.ru"
-		},
-		{
-			"email": "appr3@mail.ru"
-		},
-		{
-			"email": "appr4@mail.ru"
-		}
-	]
-}`
