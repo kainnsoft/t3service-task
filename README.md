@@ -1,10 +1,6 @@
 ### Project structure
-Диаграмма: /High-level design.pdf
-
-based on pattern: <br>
-https://github.com/evrone/go-clean-template <br>
-https://evrone.ru/Go-clean-template <br>
-https://www.youtube.com/watch?v=V6lQG6d5LgU
+Диаграмма проекта: https://github.com/kainnsoft/t3service-task/blob/master/High-level%20design.pdf
+/High-level design.pdf
 
 
 `/cmd/app/main.go`
